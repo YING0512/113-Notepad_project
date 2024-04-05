@@ -62,7 +62,9 @@ class NoteApp:
             button.image = button_icon
             button.place(x=7, y=(i + 1) * 40 + 10, width=32, height=32, anchor="nw")
             self.menu_buttons.append(button)
+        self.mode_button.config(text="")
         self.mode_button.place(x=7, y=0, width=32, height=32)
+        
 # 
     def create_menu_buttons_expanded(self):#menu expanded
         for i, (icon_path, button_text) in enumerate(self.button_info):
@@ -72,15 +74,15 @@ class NoteApp:
             button.image = button_icon
             button.place(x=7, y=(i + 1) * 40 + 10, width=90, height=32, anchor="nw")
             self.menu_buttons.append(button)
-        
+        self.mode_button.config(text="亮色模式", compound=tk.LEFT, font=('宋體', 11 , 'bold'))
+        self.mode_button.place(x=7, y=0, width=90, height=32)
         
         # if self.mode_day:
         #     self.mode_button.config(text="亮色模式", compound=tk.LEFT, font=('宋體', 11 , 'bold'))
-        #     self.mode_day = False
+        #     self.mode_day = True
         # else:
         #     self.mode_button.config(text="暗色模式", compound=tk.LEFT, font=('宋體', 11 , 'bold'))
-        #     self.mode_day = True
-        self.mode_button.config(text="模式　", compound=tk.LEFT, font=('宋體', 11 , 'bold'))
+        #     self.mode_day = False
         self.mode_button.place(x=7, y=0, width=90, height=32)
 # 
     def toggle_menu(self):  #menu size change
@@ -105,10 +107,12 @@ class NoteApp:
     def toggle_mode(self):  #background   
         if self.mode_day:
             self.mode_button.config(image=self.setting_nighticon)
-            self.mode_day = False
+            self.mode_button_text = "暗色模式"
         else:
             self.mode_button.config(image=self.setting_dayicon)
-            self.mode_day = True
+            self.mode_button_text = "亮色模式"
+        self.mode_button.config(text=self.mode_button_text)
+        self.mode_day = not self.mode_day
 # 
     def show_info(self, button_text):   #check button content
         print(f"Button clicked: {button_text}")
