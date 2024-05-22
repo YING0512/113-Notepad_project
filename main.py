@@ -3,6 +3,7 @@ from PIL import Image, ImageTk
 from notecalendarFM import CalendarFM
 from notetodoFM import Todo
 from notetextFM import TextEditor
+import os
 
 class NoteApp:
     def __init__(self, root):
@@ -12,6 +13,8 @@ class NoteApp:
         root.resizable(False, False)
         self.menu_expanded = False
         self.mode_day = False
+        self.last_modification_time = None
+        self.root.after(1000, self.check_file_changes)
         
         #color
         self.white="#ffffff"
@@ -211,9 +214,28 @@ class NoteApp:
         self.todo_app.toggle_mode(not self.mode_day)
         print(self.mode_day)
 
+    def check_file_changes(self):
+        # 检查文件是否存在
+        if os.path.exists("tasks.txt"):
+            # 获取文件的最后修改时间
+            current_modification_time = os.path.getmtime("tasks.txt")
+
+            # 比较最后修改时间是否有变化
+            if current_modification_time != self.last_modification_time:
+                # 重新加载任务数据
+                self.load_tasks()
+                # 更新最后修改时间
+                self.last_modification_time = current_modification_time
+
+        # 重新注册定时器
+        self.root.after(1000, self.check_file_changes)
+
     def load_tasks(self):
-    # 讀取.txt檔案並顯示內容
         try:
+            # 清除舊的Label
+            for widget in self.DoList.winfo_children():
+                widget.destroy()
+            
             with open("tasks.txt", "r", encoding='utf-8') as file:
                 tasks = file.readlines()
                 for i, task in enumerate(tasks):
@@ -223,6 +245,7 @@ class NoteApp:
                     label.grid(row=i, column=0, sticky="w", padx=10, pady=10)
         except FileNotFoundError:
             print("找不到檔案")
+
 # 
     def show_info(self, button_text):   #check button content
         print(f"Button clicked: {button_text}")
