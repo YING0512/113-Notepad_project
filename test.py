@@ -1,151 +1,182 @@
+from PIL import Image, ImageTk
+import calendar
 import tkinter as tk
-from tkinter import messagebox
-import datetime
-import time
-from threading import Thread
-from tkcalendar import DateEntry
+from datetime import datetime, timedelta
 
-class Todo:
-    def __init__(self, root, mode_day=False):
-        self.root = root
-        self.mode_day = mode_day
-        self.tasks = []
-        self.reminders = []
 
-        # Colors
-        self.white = "#ffffff"
-        self.black = "#000000"
-        self.darkBG1 = "#2d2f32"
+class CalendarFM:
+    def __init__(self, parent, mode_day=False):
+        self.parent = parent
+        self.mainframe = tk.Frame(self.parent, bg="#3f4145")
+        self.mainframe.pack(pady=40)
+
+        # Color settings
         self.darkBG2 = "#3f4145"
-        self.darkactive = "#4c4e52"
-        self.brightBG1 = "#e3e5e8"
-        self.brightBG2 = "#f7f6f7"
-        self.brightactive = "#f1f0f2"
+        self.white = "#ffffff"
 
-        # Frame for the input section
-        self.input_frame = tk.Frame(self.root, bg=self.darkBG2)
-        self.input_frame.pack(pady=10, padx=10, fill="x")
-        self.title_txt = tk.Label(self.input_frame, text="標題:", fg=self.white, bg=self.darkBG2, font=(12))
-        self.title_txt.pack(side="left")
+        # Get current date
+        now = datetime.now()
+        self.year = tk.IntVar(value=now.year)
+        self.month = tk.IntVar(value=now.month)
+        self.day = tk.IntVar(value=(now + timedelta(days=1)).day)
+        self.calendar_frame = None
 
-        # Entry field to add tasks
-        self.txt_input = tk.Entry(self.input_frame, width=30)
-        self.txt_input.pack(side="left", padx=5)
-        
-        # Frame for time selection
-        self.time_frame = tk.Frame(self.root, bg=self.darkBG2)
-        self.time_frame.pack(pady=5, padx=10, fill="x")
-        
-        # DateEntry for selecting date
-        self.cal = DateEntry(self.input_frame, width=12, background='darkblue', foreground='white', borderwidth=2, year=2024)
-        self.cal.pack(side="left", padx=5)
+        # Image paths
+        self.icon_message_text_off_path = "icon/message-text off.png"
+        self.icon_alarm_clock_off_path = "icon/alarm-clock off.png"
+        self.icon_alarm_clock_on_path = "icon/alarm-clock on.png"
 
-        # Labels and Spinboxes for time selection
-        self.time_pick = tk.Label(self.input_frame, text="時間:", fg=self.white, bg=self.darkBG2, font=(12))
-        self.time_pick.pack(side="left")
-        self.hour_spinbox = tk.Spinbox(self.input_frame, from_=1, to=12, width=2)
-        self.hour_spinbox.pack(side="left", padx=5)
-        self.hour_spinbox.delete(0, 'end')
-        self.hour_spinbox.insert(0, datetime.datetime.now().strftime("%I"))
-        self.minute_semicolon = tk.Label(self.input_frame, text=":", fg=self.white, bg=self.darkBG2)
-        self.minute_semicolon.pack(side="left")
-        self.minute_spinbox = tk.Spinbox(self.input_frame, from_=0, to=59, width=2)
-        self.minute_spinbox.pack(side="left", padx=5)
-        self.minute_spinbox.delete(0, 'end')
-        self.minute_spinbox.insert(0, datetime.datetime.now().strftime("%M"))
-        self.ampm_combobox = tk.StringVar(self.root)
-        self.ampm_combobox.set(datetime.datetime.now().strftime("%p"))
-        self.ampm_optionmenu = tk.OptionMenu(self.input_frame, self.ampm_combobox, "AM", "PM")
-        self.ampm_optionmenu.pack(side="left", padx=5)
+        # Load tasks
+        self.tasks = self.load_tasks("tasks.txt")
 
-        # Button to add tasks and set reminders
-        self.btn_add_task = tk.Button(self.input_frame, text="增加待辦事項並設定提醒", fg="white", bg="#6CAE75", command=self.add_task)
-        self.btn_add_task.pack(side="left", padx=5)
+        # Initialize interface
+        self.create_widgets()
 
-        # Button to delete selected task
-        self.btn_delete_task = tk.Button(self.input_frame, text="刪除選定事項", fg="white", bg="#EF5350", command=self.delete_task)
-        self.btn_delete_task.pack(side="left", padx=5)
+    def load_tasks(self, filename):
+        tasks = {}
+        with open(filename, "r", encoding="utf-8") as file:
+            for line in file:
+                date, _, _ = line.strip().split(',')
+                tasks[date] = True
+        return tasks
 
-        # Listbox to display tasks
-        self.lb_tasks = tk.Listbox(self.root, width=60, height=15)
-        self.lb_tasks.pack(pady=10, padx=10, fill="both", expand=True)
+    def create_widgets(self):
+        # Year and month layout
+        self.year_month_frame = tk.Frame(self.mainframe, bg=self.darkBG2)
+        self.year_month_frame.grid(row=0, column=0, columnspan=7, pady=(0, 10))
 
-        # Start a new thread to monitor reminders
-        self.thread = Thread(target=self.check_reminders, daemon=True)
-        self.thread.start()
+        # Year selection
+        self.year_label = tk.Label(self.year_month_frame, text="Year:", font=(16), bg=self.darkBG2, fg=self.white)
+        self.year_label.grid(row=0, column=0, padx=5, pady=5, sticky="ne")
+        self.year_spinbox = tk.Spinbox(self.year_month_frame, from_=1900, to=2100, textvariable=self.year,
+                                        command=self.update_calendar)
+        self.year_spinbox.grid(row=0, column=1, padx=5, pady=5)
 
-    def toggle_mode(self, mode_day):
-        # Change color
-        self.mode_day = mode_day
-        if self.mode_day:
-            self.currentbg_color = self.darkBG2
-            self.currentfg_color = self.white
-            self.currentactive_color = self.darkactive
-        else:
-            self.currentbg_color = self.brightBG2
-            self.currentfg_color = self.black
-            self.currentactive_color = self.brightactive
+        # Month selection
+        self.month_label = tk.Label(self.year_month_frame, text="Month:", font=(16), bg=self.darkBG2, fg=self.white)
+        self.month_label.grid(row=0, column=2, padx=5, pady=5, sticky="ne")
+        self.month_spinbox = tk.Spinbox(self.year_month_frame, from_=1, to=12, textvariable=self.month,
+                                         command=self.update_calendar)
+        self.month_spinbox.grid(row=0, column=3, padx=5, pady=5)
 
-        self.input_frame.config(bg=self.currentbg_color)
-        self.time_frame.config(bg=self.currentbg_color)
-        self.minute_semicolon.config(bg=self.currentbg_color)
-        self.title_txt.config(bg=self.currentbg_color, fg=self.currentfg_color)
-        self.time_pick.config(bg=self.currentbg_color, fg=self.currentfg_color)
-        
-    # Function to update the listbox with tasks
-    def update_listbox(self):
-        self.lb_tasks.delete(0, "end")
-        for task in self.tasks:
-            self.lb_tasks.insert("end", task)
+        # Create week label and date grid layout
+        self.calendar_frame = tk.Frame(self.mainframe, bg=self.darkBG2)
+        self.calendar_frame.grid(row=1, column=0, columnspan=7, sticky="n")
+        weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+        for i, day in enumerate(weekdays):
+            label = tk.Label(self.calendar_frame, text=day, bg=self.darkBG2, fg=self.white, font=('Helvetica', 12))
+            label.grid(row=0, column=i, padx=0, pady=0)
 
-    # Function to add a task and set a reminder
-    def add_task(self):
-        task = self.txt_input.get()
-        if task:
-            self.tasks.append(task)
-            self.update_listbox()
-            self.txt_input.delete(0, "end")
-            self.set_reminder(task)
-        else:
-            messagebox.showinfo("提示", "不能輸入空白")
+        # Create date grid
+        self.calendar_grid = []
+        self.create_calendar_grid(self.calendar_frame)
 
-    # Function to set a reminder for a given task
-    def set_reminder(self, task):
-        reminder_time_str = f"{self.cal.get_date()} {self.hour_spinbox.get()}:{self.minute_spinbox.get()} {self.ampm_combobox.get()}"
-        try:
-            reminder_time = datetime.datetime.strptime(reminder_time_str, "%Y-%m-%d %I:%M %p")
-        except ValueError:
-            messagebox.showinfo("錯誤", "提醒時間格式不正確，請按照 YYYY-MM-DD hh:mm AM/PM 格式輸入。")
-            return
-        current_time = datetime.datetime.now()
-        if reminder_time <= current_time:
-            messagebox.showinfo("錯誤", "提醒時間必須晚於當前時間。")
-            return
-        self.reminders.append((reminder_time, task))
-        messagebox.showinfo("提示", f"提醒時間設定 '{task}' at {reminder_time.strftime('%Y-%m-%d %I:%M:%S %p')}")
+    def create_calendar_grid(self, frame):
+        # Clear existing date grid
+        for row in self.calendar_grid:
+            for label in row:
+                label.destroy()
+        self.calendar_grid.clear()
 
-    # Function to delete a selected task
-    def delete_task(self):
-        selected_index = self.lb_tasks.curselection()
-        if selected_index:
-            selected_task = self.lb_tasks.get(selected_index)
-            self.tasks.remove(selected_task)
-            self.update_listbox()
-            messagebox.showinfo("提示", f"已刪除 '{selected_task}'")
+        # Get calendar for selected date
+        year = self.year.get()
+        month = self.month.get()
+        cal = calendar.monthcalendar(year, month)
+        mycalendar = [[0 for i in range(8)] for j in range(7)]
+        for i, week in enumerate(cal):
+            for j, day in enumerate(week):
+                if day != 0:
+                    weekday = (calendar.weekday(year, month, day) + 1) % 7
+                    if weekday == 0:
+                        i += 1
+                        mycalendar[i][weekday] = day
+                        break
+                    else:
+                        mycalendar[i][weekday] = day
+
+        cnt = 0
+        for i in range(7):
+            for j in range(7):
+                if mycalendar[i][j] == 0:
+                    cnt += 1
+            mycalendar[i][7] = cnt
+            cnt = 0
+            if mycalendar[0][7] == 7:
+                del mycalendar[0]
+                mycalendar.append([0] * len(mycalendar[0]))
+
+        for i in range(6):
+            row_labels = []  # Initialize list of labels for each row
+            for j in range(7):
+                if mycalendar[i][j] != 0:
+                    date_str = "{}/{:02d}/{:02d}".format(year, month, mycalendar[i][j])
+                    cell_label = tk.Button(frame, text=mycalendar[i][j], bg=self.darkBG2, fg=self.white,
+                                           activebackground="#4c4e52", activeforeground=self.white, relief="ridge",
+                                           width=10, height=5, bd=1, font=('Helvetica', 12),
+                                           command=lambda date=date_str: self.calendar_btnclick(date))
+                    cell_label.grid(row=i + 1, column=j, padx=0, pady=0)
+                    row_labels.append(cell_label)
+
+                    # Add image below the button if tasks exist for that date
+                    if date_str in self.tasks:
+                        image_path = self.icon_alarm_clock_on_path
+                    else:
+                        image_path = self.icon_alarm_clock_off_path
+                    self.add_image_below_button(frame, i + 1, j, image_path)
+
+                else:
+                    if mycalendar[i][7] != 7:
+                        # Create an empty button
+                        cell_label = tk.Button(frame, text="", bg=self.darkBG2, fg=self.white,
+                                               activebackground="#4c4e52", activeforeground=self.white,
+                                               relief="ridge", width=10, height=5, bd=1,
+                                               font=('Helvetica', 12))
+                        cell_label.grid(row=i + 1, column=j, padx=0, pady=0)
+                        row_labels.append(cell_label)
+            self.calendar_grid.append(row_labels)
+
+    def add_image_below_button(self, frame, row, column, image_path):
+        image = Image.open(image_path)
+        image = image.resize((20, 20), resample=Image.LANCZOS)
+        photo = ImageTk.PhotoImage(image)
+        label = tk.Label(frame, image=photo, bg=self.darkBG2)
+        photo = ImageTk.PhotoImage(image)
+        label = tk.Label(frame, image=photo, bg=self.darkBG2)
+        label.image = photo
+        label.grid(row=row + 1, column=column, padx=0, pady=0, sticky="n")
+
+    def calendar_btnclick(self, date):
+        # This method is called when a button in the calendar is clicked
+        formatted_date = "{}/{}/{}".format(self.year.get(), self.month.get(), date)
+        print("Button clicked for date:", formatted_date)
+        return formatted_date
+        #print("Button clicked for date:", formatted_date)
     
-    # Function to check reminders
-    def check_reminders(self):
-        while True:
-            current_time = datetime.datetime.now()
-            for reminder in self.reminders:
-                reminder_time, task = reminder
-                if current_time >= reminder_time:
-                    messagebox.showinfo("提醒", f"'{task}'")
-                    self.reminders.remove(reminder)
-            time.sleep(1)
+    def update_calendar(self):
+        # Update date grid
+        for row_labels in self.calendar_grid:
+            for cell_label in row_labels:
+                if cell_label.cget('text') != "":
+                    cell_label.config(bg=self.darkBG2, fg=self.white, activebackground="#4c4e52",
+                                      activeforeground=self.white)
+                else:
+                    cell_label.config(bg=self.darkBG2, activebackground="#4c4e52")
 
+        for row in self.calendar_grid:
+            for button in row:
+                button.destroy()
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = Todo(root)
-    root.mainloop()
+        # Create week label and date grid layout
+        weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+        for i, day in enumerate(weekdays):
+            label = tk.Label(self.calendar_frame, text=day, bg=self.darkBG2, fg=self.white, font=('Helvetica', 12))
+            label.grid(row=0, column=i, padx=0, pady=0)
+
+        # Create date grid
+        self.create_calendar_grid(self.calendar_frame)
+        self.calendar_frame.grid(row=1, column=0, columnspan=7)
+
+# Test the program
+root = tk.Tk()
+app = CalendarFM(root)
+root.mainloop()

@@ -58,7 +58,7 @@ class Todo:
         self.ampm_optionmenu.pack(side="left", padx=5)
 
         # Button to add tasks and set reminders
-        self.btn_add_task = tk.Button(self.input_frame, text="增加待辦事項並設定提醒", fg="white", bg="#6CAE75", command=self.add_task)
+        self.btn_add_task = tk.Button(self.input_frame, text="建立待辦事項", fg="white", bg="#6CAE75", command=self.add_task)
         self.btn_add_task.pack(side="left", padx=5)
 
         # Button to delete selected task
