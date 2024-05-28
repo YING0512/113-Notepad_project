@@ -1,7 +1,7 @@
 import calendar
 import tkinter as tk
 from datetime import datetime, timedelta
-from PIL import Image, ImageTk  # 用於處理圖片
+from PIL import Image, ImageTk
 
 class CalendarFM:
     def __init__(self, parent, mode_day=False):  # 新增mode_day參數，默認為False
@@ -9,7 +9,7 @@ class CalendarFM:
         self.mainframe = tk.Frame(self.parent, bg="#3f4145")
         self.mainframe.pack(pady=40)
 
-        # color
+        # Colors
         self.white = "#ffffff"
         self.black = "#000000"
         self.darkBG1 = "#2d2f32"
@@ -27,12 +27,14 @@ class CalendarFM:
         self.calendar_frame = None
 
         # Image settings
-        self.icon_message_text_off_path = "icon/message-text off.png"
-        self.icon_alarm_clock_off_path = "icon/alarm-clock off.png"
-        self.icon_alarm_clock_on_path = "icon/alarm-clock on.png"
-        self.icon_message_text_off = self.resize_image(self.icon_message_text_off_path, 20, 20)
-        self.icon_alarm_clock_off = self.resize_image(self.icon_alarm_clock_off_path, 20, 20)
-        self.icon_alarm_clock_on = self.resize_image(self.icon_alarm_clock_on_path, 20, 20)
+        self.off_off_image_path = "icon/off-off_image.png"
+        self.off_on_image_path = "icon/off-on_image.png"
+        self.on_off_image_path = "icon/on-off_image.png"
+        self.on_on_image_path = "icon/on-on_image.png"
+        self.off_off_image = self.resize_image(self.off_off_image_path, 48, 19)
+        self.off_on_image = self.resize_image(self.off_on_image_path, 48, 19)
+        self.on_off_image = self.resize_image(self.on_off_image_path, 48, 19)
+        self.on_on_image = self.resize_image(self.on_on_image_path, 48, 19)
 
         # Load tasks
         self.tasks = self.load_tasks("tasks.txt")
@@ -77,8 +79,9 @@ class CalendarFM:
             label.config(bg=self.currentbg_color, fg=self.currentfg_color)
         for row_labels in self.calendar_grid:
             for cell_label in row_labels:
-                if cell_label.cget('text') != "":
-                    cell_label.config(bg=self.currentbg_color, fg=self.currentfg_color, activebackground=self.currentactive_color, activeforeground=self.currentfg_color)
+                if cell_label.cget('text') != "":  # .cget() Get the current value of a specific widget attribute.
+                    cell_label.config(bg=self.currentbg_color, fg=self.currentfg_color,
+                                      activebackground=self.currentactive_color, activeforeground=self.currentfg_color)
                 else:
                     cell_label.config(bg=self.currentbg_color, activebackground=self.currentactive_color)
 
@@ -96,8 +99,6 @@ class CalendarFM:
 
         # Month selection
         self.month_label = tk.Label(self.year_month_frame, text="Month:", font=(16), bg=self.darkBG2, fg=self.white)
-       
-
         self.month_label.grid(row=0, column=2, padx=5, pady=5, sticky="ne")
 
         self.month_spinbox = tk.Spinbox(self.year_month_frame, from_=1, to=12, textvariable=self.month, command=self.update_calendar)
@@ -129,44 +130,55 @@ class CalendarFM:
         year = self.year.get()
         month = self.month.get()
         cal = calendar.monthcalendar(year, month)
-        
+        mycalendar = [[0 for i in range(8)] for j in range(7)]
         for i, week in enumerate(cal):
-            row_labels = []  # Initialize list of labels for each row
             for j, day in enumerate(week):
                 if day != 0:
-                    date_str = "{}/{:02d}/{:02d}".format(year, month, day)
-                    # Check if there is a task for this date
-                    if date_str in self.tasks:
-                        icon_alarm = self.icon_alarm_clock_on
+                    weekday = (calendar.weekday(year, month, day) + 1) % 7
+                    if weekday == 0:
+                        i += 1
+                        mycalendar[i][weekday] = day
+                        break
                     else:
-                        icon_alarm = self.icon_alarm_clock_off
+                        mycalendar[i][weekday] = day
 
-                    # Create a label with command to call calendar_btnclick with the clicked date
-                    label = tk.Label(frame, text=day, bg=self.darkBG2, fg=self.white, font=('Helvetica', 12), width=10, height=5, bd=1)
-                    label.grid(row=i + 1, column=j, padx=0, pady=0,sticky="n", columnspan=2)
+        cnt = 0
+        for i in range(7):
+            for j in range(7):
+                if mycalendar[i][j] == 0:
+                    cnt += 1
+            mycalendar[i][7] = cnt
+            cnt = 0
+            if mycalendar[0][7] == 7:
+                del mycalendar[0]
+                mycalendar.append([0] * len(mycalendar[0]))
 
-                    # Add images below the text
-                    button_message = tk.Button(label, image=self.icon_message_text_off, bg=self.darkBG2, bd=0, command=lambda day=mycalendar[i][j]: self.calendar_btnclick(day))
-                    button_message.image = self.icon_message_text_off  # Keep a reference to avoid garbage collection
-                    button_message.grid(row=1, column=0, padx=0, pady=0)
-
-                    button_alarm = tk.Button(label, image=icon_alarm, bg=self.darkBG2, bd=0, command=lambda day=mycalendar[i][j]: self.calendar_btnclick(day))
-                    button_alarm.image = icon_alarm  # Keep a reference to avoid garbage collection
-                    button_alarm.grid(row=1, column=1, padx=0, pady=0)
-
-                    row_labels.append(label)
+        for i in range(6):
+            row_labels = []  # Initialize list of labels for each row
+            for j in range(7):
+                if mycalendar[i][j] != 0:
+                    day = mycalendar[i][j]
+                    formatted_date = "{}/{:02d}/{:02d}".format(self.year.get(), self.month.get(), day)
+                    # Check if the date has tasks and select the appropriate image
+                    image = self.off_on_image if formatted_date in self.tasks else self.off_off_image
+                    # Create a button with command to call calendar_btnclick with the clicked date
+                    cell_label = tk.Button(frame, text=day, bg=self.darkBG2, fg=self.white, image=image, compound="bottom",
+                                           activebackground="#4c4e52", activeforeground=self.white, relief="ridge",
+                                           width=92, height=96, bd=1, font=('Helvetica', 16),
+                                           command=lambda day=day: self.calendar_btnclick(day))
+                    cell_label.grid(row=i+1, column=j, padx=0, pady=0)
+                    row_labels.append(cell_label)
                 else:
-                    # Create an empty label
-                    label = tk.Label(frame, text="", bg=self.darkBG2, fg=self.white, font=('Helvetica', 12), width=10, height=5, bd=1)
-                    label.grid(row=i + 1, column=j, padx=0, pady=0)
-                    row_labels.append(label)
+                    if mycalendar[i][7] != 7:
+                        # Create an empty button
+                        cell_label = tk.Button(frame, text="", bg=self.darkBG2, fg=self.white, activebackground=self.darkBG2,
+                                               activeforeground=self.white, relief="ridge", width=10, height=5, bd=1,
+                                               font=('Helvetica', 12))
+                        cell_label.grid(row=i+1, column=j, padx=0, pady=0)
+                        row_labels.append(cell_label)
+                j += 1
+            i += 1
             self.calendar_grid.append(row_labels)
-
-    def button_message_click(self, date_str):
-        print("Message button clicked for date:", date_str)
-
-    def button_alarm_click(self, date_str):
-        print("Alarm button clicked for date:", date_str)
 
     def calendar_btnclick(self, date):
         # This method is called when a button in the calendar is clicked
@@ -176,8 +188,15 @@ class CalendarFM:
 
     def update_calendar(self):  # Update date grid
         for row_labels in self.calendar_grid:
-            for label in row_labels:
-                label.destroy()
+            for cell_label in row_labels:
+                if cell_label.cget('text') != "":  # .cget() Get the current value of a specific widget attribute.
+                    cell_label.config(bg=self.currentbg_color, fg=self.currentfg_color,
+                                      activebackground=self.currentactive_color, activeforeground=self.currentfg_color)
+                else:
+                    cell_label.config(bg=self.currentbg_color, activebackground=self.currentactive_color)
+        for row in self.calendar_grid:
+            for button in row:
+                button.destroy()
 
         weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
         self.weekday_labels = []  # 用於保存星期標籤的列表
@@ -188,9 +207,11 @@ class CalendarFM:
 
         # Create date grid
         self.calendar_grid = []
-        self.create_calendar_grid(self.calendar_frame)
+        calendar_frame = self.calendar_frame
+        self.create_calendar_grid(calendar_frame)
+        calendar_frame.grid(row=1, column=0, columnspan=7)
 
-# 測試程式
-root = tk.Tk()
-app = CalendarFM(root)
-root.mainloop()
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = CalendarFM(root)
+    root.mainloop()
