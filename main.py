@@ -43,7 +43,7 @@ class NoteApp:
         # Content Frame
         self.content_frame = tk.Frame(self.root, bd=1, bg=self.darkBG2)
         self.content_frame.place(x=50, y=0, width=850, height=768)
-        self.calendar_app = CalendarFM(self.content_frame, mode_day=self.mode_day)
+        self.calendar_app = CalendarFM(self.content_frame, mode_day=self.mode_day, action1=self.text_click, action2=self.todo_click)
         self.calendarr = True
         
         # Information Frame
@@ -98,7 +98,7 @@ class NoteApp:
         self.mode_button.place(x=7, y=7, width=32, height=32)
 # 
     def create_menu_buttons_expanded(self):#menu expanded
-        self.calender_btn = tk.Button(self.menu_frame, text=" 日歷　", compound=tk.LEFT, font=('宋體', 11 , 'bold'), image=self.calender_icon, bd=0, cursor="hand2",command=self.calendar_click)
+        self.calender_btn = tk.Button(self.menu_frame, text=" 日　歷", compound=tk.LEFT, font=('宋體', 11 , 'bold'), image=self.calender_icon, bd=0, cursor="hand2",command=self.calendar_click)
         self.calender_btn.image = self.calender_icon_path
         self.calender_btn.place(x=7, y=47, width=90, height=32)
         self.menu_buttons.append(self.calender_btn)
@@ -191,7 +191,7 @@ class NoteApp:
         self.todo = False
         for widget in self.content_frame.winfo_children():
             widget.destroy()
-        self.calendar_app = CalendarFM(self.content_frame, mode_day=self.mode_day)
+        self.calendar_app = CalendarFM(self.content_frame, mode_day=self.mode_day, action1=self.text_click, action2=self.todo_click)
         self.calendar_app.toggle_mode(not self.mode_day)
 
     def text_click(self):
