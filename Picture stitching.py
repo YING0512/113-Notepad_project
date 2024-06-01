@@ -1,8 +1,8 @@
 from PIL import Image
 
 # 載入圖片
-messagetext_off = Image.open("icon/note-on.png")
-alarmclock_on = Image.open("icon/time-quarter-to-off.png")
+messagetext_off = Image.open("icon/wnote_off.png")
+alarmclock_on = Image.open("icon/wtime-quarter-to_off.png")
 
 # 獲取圖片尺寸
 width1, height1 = messagetext_off.size
@@ -25,4 +25,4 @@ new_image.paste(alarmclock_on, (width1+8, 0))
 
 # 顯示或儲存拼接後的圖片
 # new_image.show()
-new_image.save("icon/on-off_image.png")
+new_image.save("icon/woff-off_image.png")

@@ -160,4 +160,6 @@ def main():
     root.mainloop()  # 進入主事件循環，等待用戶交互操作
 
 if __name__ == "__main__":
-    main()
+    root =tkinter.Tk()  # 創建主視窗
+    app = Todo(root)  #
+    root.mainloop()

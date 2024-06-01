@@ -21,14 +21,25 @@ class NoteApp:
         self.black="#000000"
         self.darkBG1="#2d2f32"
         self.darkBG2="#3f4145"
+        self.darkBG3="#1F1F1F"
         self.darkactive ="#4c4e52"
-        self.brightBG1 ="#e3e5e8"
-        self.brightBG2 ="#f7f6f7"
+        self.brightBG1 ="#c0c0c0"
+        self.brightBG2 ="#dfdfdf"
+        self.brightBG3 ="#6F6F6F"
         self.brightactive ="#f1f0f2"
       
         # Menu Frame
+        self.title_icon_path = "icon/feather-pen.png"
+        self.menu_icon_path = "icon/menu-burger.png"
+        self.title_icon = self.resize_image(self.title_icon_path, 30, 30)
+        self.menu_icon = self.resize_image(self.menu_icon_path, 30, 30)
         self.menu_frame = tk.Frame(self.root, bd=2, bg=self.darkBG1)
-        self.menu_frame.place(x=0, y=0, width=50, height=700)
+        self.menu_frame.place(x=0, y=40, width=50, height=660)
+        self.title_frame = tk.Frame(self.root, bg=self.darkBG3)
+        self.title_frame.place(x=0, y=0, width=1200, height=40)
+        self.title_button = tk.Button(self.title_frame, image=self.title_icon, bd=0,  cursor="hand2",)
+        self.title_button.place(x=47, y=2, width=32, height=32)
+        
         
         #Setting frame
         self.setting_dayicon_path = "icon/brightness.png"
@@ -36,19 +47,19 @@ class NoteApp:
         self.setting_dayicon = self.resize_image(self.setting_dayicon_path, 20, 20)
         self.setting_nighticon = self.resize_image(self.setting_nighticon_path, 20, 20)
         self.set_frame = tk.Frame(self.root, bd=0, bg=self.darkBG1)
-        self.set_frame.place(x=0, y=700, width=50, height=68)
+        self.set_frame.place(x=0, y=700, width=50, height=660)
         self.mode_button = tk.Button(self.set_frame, cursor="hand2", bd=0, fg=self.black, bg=self.white, image=self.setting_dayicon, command=self.toggle_mode)
         self.mode_button.place(x=7, y=0, width=32, height=40)
         
         # Content Frame
         self.content_frame = tk.Frame(self.root, bd=1, bg=self.darkBG2)
-        self.content_frame.place(x=50, y=0, width=850, height=768)
+        self.content_frame.place(x=50, y=40, width=890, height=728)
         self.calendar_app = CalendarFM(self.content_frame, mode_day=self.mode_day, action1=self.text_click, action2=self.todo_click)
         self.calendarr = True
         
         # Information Frame
         self.information_frame = tk.Frame(self.root, bd=0, bg=self.darkBG1)
-        self.information_frame.place(x=900, y=0, width=300, height=768)
+        self.information_frame.place(x=940, y=40, width=300, height=728)
         self.DoList = tk.Frame(self.information_frame, bg=self.darkBG1)
         self.DoList.place(x=0, y=0, width=300, height=768)
 
@@ -61,17 +72,15 @@ class NoteApp:
         self.text_icon = ImageTk.PhotoImage(self.text_icon_path)
         self.todo_icon_path = Image.open("icon/list-check.png").resize((20, 20))
         self.todo_icon = ImageTk.PhotoImage(self.todo_icon_path)
-
-        self.menu_icon_path = "icon/menu-burger.png"
         
         # Create menu buttons
         self.create_menu_buttons()  # Start with closed menu buttons
 
         # Menu Button
-        self.menu_icon = self.resize_image(self.menu_icon_path, 20, 20)
-        self.menu_btn = tk.Button(self.menu_frame,text="menu", image=self.menu_icon, bd=0, cursor="hand2", command=self.toggle_menu)
+        self.menu_icon = self.resize_image(self.menu_icon_path, 30, 30)
+        self.menu_btn = tk.Button(self.title_frame,text="menu", image=self.menu_icon, bd=0, cursor="hand2", command=self.toggle_menu)
         self.menu_btn.image = self.menu_icon
-        self.menu_btn.place(x=7, y=7, width=32, height=32)
+        self.menu_btn.place(x=7, y=2, width=32, height=32)
 # 
     def create_menu_buttons(self):
         self.menu_buttons = []
@@ -82,17 +91,17 @@ class NoteApp:
         # Create buttons individually
         self.calender_btn = tk.Button(self.menu_frame, image=self.calender_icon, bd=0, cursor="hand2",command=self.calendar_click)
         self.calender_btn.image = self.calender_icon_path
-        self.calender_btn.place(x=7, y=47, width=32, height=32)
+        self.calender_btn.place(x=7, y=7, width=32, height=32)
         self.menu_buttons.append(self.calender_btn)
 
         self.text_btn = tk.Button(self.menu_frame, image=self.text_icon, bd=0, cursor="hand2",command=self.text_click)
         self.text_btn.image = self.text_icon_path
-        self.text_btn.place(x=7, y=87, width=32, height=32)
+        self.text_btn.place(x=7, y=47, width=32, height=32)
         self.menu_buttons.append(self.text_btn)
 
         self.todo_btn = tk.Button(self.menu_frame, image=self.todo_icon, bd=0, cursor="hand2",command=self.todo_click)
         self.todo_btn.image = self.todo_icon_path
-        self.todo_btn.place(x=7, y=127, width=32, height=32)
+        self.todo_btn.place(x=7, y=87, width=32, height=32)
         self.menu_buttons.append(self.todo_btn)
         self.mode_button.config(text="",command=self.toggle_mode)
         self.mode_button.place(x=7, y=7, width=32, height=32)
@@ -100,17 +109,17 @@ class NoteApp:
     def create_menu_buttons_expanded(self):#menu expanded
         self.calender_btn = tk.Button(self.menu_frame, text=" 日　歷", compound=tk.LEFT, font=('宋體', 11 , 'bold'), image=self.calender_icon, bd=0, cursor="hand2",command=self.calendar_click)
         self.calender_btn.image = self.calender_icon_path
-        self.calender_btn.place(x=7, y=47, width=90, height=32)
+        self.calender_btn.place(x=7, y=7, width=90, height=32)
         self.menu_buttons.append(self.calender_btn)
 
         self.text_btn = tk.Button(self.menu_frame, text=" 記事本", compound=tk.LEFT, font=('宋體', 11 , 'bold'), image=self.text_icon, bd=0, cursor="hand2",command=self.text_click)
         self.text_btn.image = self.text_icon_path
-        self.text_btn.place(x=7, y=87, width=90, height=32)
+        self.text_btn.place(x=7, y=47, width=90, height=32)
         self.menu_buttons.append(self.text_btn)
 
         self.todo_btn = tk.Button(self.menu_frame, text=" 備忘錄", compound=tk.LEFT, font=('宋體', 11 , 'bold'), image=self.todo_icon, bd=0, cursor="hand2",command=self.todo_click)
         self.todo_btn.image = self.todo_icon_path
-        self.todo_btn.place(x=7, y=127, width=90, height=32)
+        self.todo_btn.place(x=7, y=87, width=90, height=32)
         self.menu_buttons.append(self.todo_btn)
             
         if self.mode_day:
@@ -125,10 +134,10 @@ class NoteApp:
             for button in self.menu_buttons:
                 button.destroy()
             # Restore default frame proportions
-            self.menu_frame.place(x=0, y=0, width=50, height=700)
-            self.set_frame.place(x=0, y=700, width=50, height=68)
-            self.content_frame.place(x=50, y=0, width=850, height=768)
-            self.information_frame.place(x=900, y=0, width=300, height=768)
+            self.menu_frame.place(x=0, y=40, width=50, height=660)
+            self.set_frame.place(x=0, y=700, width=50, height=660)
+            self.content_frame.place(x=50, y=40, width=890, height=728)
+            self.information_frame.place(x=940, y=40, width=300, height=728)
             if self.mode_day:
                 self.modetext =" 亮色模式"
             else:
@@ -137,9 +146,9 @@ class NoteApp:
             self.menu_expanded = False
         else:
             # Adjust frame proportions
-            self.menu_frame.place(x=0, y=0, width=120, height=700)
-            self.set_frame.place(x=0, y=700, width=120, height=68)
-            self.content_frame.place(x=120, y=0, width=780, height=768)
+            self.menu_frame.place(x=0, y=40, width=120, height=680)
+            self.set_frame.place(x=0, y=700, width=120, height=660)
+            self.content_frame.place(x=120, y=40, width=820, height=768)
             self.mode_button.config(text="")
             self.menu_expanded = True
         # Recreate menu buttons
@@ -152,6 +161,8 @@ class NoteApp:
             self.set_frame.config(bg=self.darkBG1)
             self.content_frame.config(bg=self.darkBG2)
             self.information_frame.config(bg=self.darkBG1)
+            self.DoList.config(bg=self.darkBG1)
+            self.title_frame.config(bg=self.darkBG3)
             if self.menu_expanded:
                 self.mode_button.config(text=" 亮色模式")
         else:
@@ -160,6 +171,8 @@ class NoteApp:
             self.set_frame.config(bg=self.brightBG1)
             self.content_frame.config(bg=self.brightBG2)
             self.information_frame.config(bg=self.brightBG1)
+            self.DoList.config(bg=self.brightBG1)
+            self.title_frame.config(bg=self.brightBG3)
             if self.menu_expanded:
                 self.mode_button.config(text=" 暗色模式")
 
@@ -241,7 +254,7 @@ class NoteApp:
                 for i, task in enumerate(tasks):
                     task = task.strip().split(",")
                     task_text = f"{task[0]} {task[1]} {task[2]}"
-                    label = tk.Label(self.DoList, text=task_text, bg=self.darkBG2, fg=self.white, font=("宋體", 18))
+                    label = tk.Label(self.DoList, text=task_text, bg="#696969", fg=self.white, font=("宋體", 18))
                     label.grid(row=i, column=0, sticky="w", padx=10, pady=10)
         except FileNotFoundError:
             print("找不到檔案")

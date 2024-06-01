@@ -19,8 +19,8 @@ class Todo:
         self.darkBG1 = "#2d2f32"
         self.darkBG2 = "#3f4145"
         self.darkactive = "#4c4e52"
-        self.brightBG1 = "#e3e5e8"
-        self.brightBG2 = "#f7f6f7"
+        self.brightBG1 ="#c0c0c0"
+        self.brightBG2 ="#dfdfdf"
         self.brightactive = "#f1f0f2"
 
         self.current_time = datetime.datetime.now()

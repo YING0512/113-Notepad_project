@@ -18,8 +18,8 @@ class CalendarFM:
         self.darkBG1 = "#2d2f32"
         self.darkBG2 = "#3f4145"
         self.darkactive = "#4c4e52"
-        self.brightBG1 = "#e3e5e8"
-        self.brightBG2 = "#f7f6f7"
+        self.brightBG1 ="#c0c0c0"
+        self.brightBG2 ="#dfdfdf"
         self.brightactive = "#f1f0f2"
         self.currentbg_color = self.darkBG2  # Add this line
         self.currentfg_color = self.white 
@@ -35,10 +35,18 @@ class CalendarFM:
         self.off_on_image_path = "icon/off-on_image.png"
         self.on_off_image_path = "icon/on-off_image.png"
         self.on_on_image_path = "icon/on-on_image.png"
+        self.woff_off_image_path = "icon/woff-off_image.png"
+        self.woff_on_image_path = "icon/woff-on_image.png"
+        self.won_off_image_path = "icon/won-off_image.png"
+        self.won_on_image_path = "icon/won-on_image.png"
         self.off_off_image = self.resize_image(self.off_off_image_path, 48, 19)
         self.off_on_image = self.resize_image(self.off_on_image_path, 48, 19)
         self.on_off_image = self.resize_image(self.on_off_image_path, 48, 19)
         self.on_on_image = self.resize_image(self.on_on_image_path, 48, 19)
+        self.woff_off_image = self.resize_image(self.off_off_image_path, 48, 19)
+        self.woff_on_image = self.resize_image(self.off_on_image_path, 48, 19)
+        self.won_off_image = self.resize_image(self.on_off_image_path, 48, 19)
+        self.won_on_image = self.resize_image(self.on_on_image_path, 48, 19)
 
         # Load tasks
         self.tasks = self.load_tasks("tasks.txt")
@@ -68,16 +76,25 @@ class CalendarFM:
             self.currentbg_color = self.darkBG2
             self.currentfg_color = self.white
             self.currentactive_color = self.darkactive
+            # self.off_offimage = self.woff_off_image
+            # self.off_onimage = self.woff_off_image
+            # self.on_offimage = self.woff_off_image
+            # self.on_onimage = self.woff_off_image
         else:
             self.currentbg_color = self.brightBG2
             self.currentfg_color = self.black
             self.currentactive_color = self.brightactive
+            # self.off_offimage = self.off_off_image
+            # self.off_onimage = self.off_off_image
+            # self.on_offimage = self.off_off_image
+            # self.on_onimage = self.off_off_image
 
         self.mainframe.config(bg=self.currentbg_color)
         self.year_month_frame.config(bg=self.currentbg_color)
         self.year_label.config(bg=self.currentbg_color, fg=self.currentfg_color)
         self.month_label.config(bg=self.currentbg_color, fg=self.currentfg_color)
         self.calendar_frame.config(bg=self.currentbg_color)
+        
         for label in self.weekday_labels:
             label.config(bg=self.currentbg_color, fg=self.currentfg_color)
         for row_labels in self.calendar_grid:
@@ -158,8 +175,8 @@ class CalendarFM:
                 if mycalendar[i][j] != 0:
                     day = mycalendar[i][j]
                     formatted_date = "{}/{:02d}/{:02d}".format(self.year.get(), self.month.get(), day)
-                    image = self.off_on_image if formatted_date in self.tasks else self.off_off_image
-                    cell_label = tk.Label(frame, text=day, bg=self.darkBG2, fg=self.white, image=image, compound="bottom",
+                    self.image = self.off_on_image if formatted_date in self.tasks else self.off_off_image
+                    cell_label = tk.Label(frame, text=day, bg=self.darkBG2, fg=self.white, image=self.image, compound="bottom",
                                           activebackground="#4c4e52", activeforeground=self.white, relief="ridge",
                                           width=94, height=97, bd=1, font=('Helvetica', 16, 'bold'))
                     cell_label.grid(row=i+1, column=j, padx=0, pady=0)

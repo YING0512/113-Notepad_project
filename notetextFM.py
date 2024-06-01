@@ -2,8 +2,32 @@ from tkinter import *
 from tkinter.ttk import *
 from tkinter import font, colorchooser
 from PIL import Image, ImageTk
+from tkinter import filedialog
 
 class TextEditor:
+    
+     # Function to save the input as a text file
+    def save(self):
+        # Ask user to choose the file location
+        filename = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
+        if filename:
+            try:
+                # Get input text from title and content areas
+                title_text = self.text_area.get("1.0", "end-1c")
+                content_text = self.text_input.get("1.0", "end-1c")
+                
+                # Write input text to the chosen file
+                with open(filename, "w") as f:
+                    f.write("Title:\n")
+                    f.write(title_text + "\n\n")
+                    f.write("Content:\n")
+                    f.write(content_text)
+            except Exception as e:
+                print("An error occurred while saving the file:", e)
+                
+        with open("notes.txt", "a", encoding='utf-8') as file:
+            file.write("{title_text}"+"{content_text}\n")
+    
     def __init__(self, root):
         self.root = root
         self.fontSize = 12
@@ -93,6 +117,11 @@ class TextEditor:
         self.rightAlignButton = Button(self.tool_bar, image=self.right_align_icon, command=self.align_right)
         self.rightAlignButton.grid(row=0, column=9, padx=5)
 
+        self.save_image = Image.open('icon/save.png')
+        self.save_icon = ImageTk.PhotoImage(self.save_image)
+        self.saveButton = Button(self.tool_bar, image=self.save_icon, command=self.save)
+        self.saveButton.grid(row=0, column=10, padx=5)
+        
         # Label frame for content
         self.contentframe = LabelFrame(self.text_frame, width=400, height=150, text='內容', border=0)
         self.contentframe.pack(padx=10, pady=4)
