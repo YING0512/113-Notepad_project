@@ -5,39 +5,45 @@ from PIL import Image, ImageTk
 from tkinter import filedialog
 
 class TextEditor:
-    
-     # Function to save the input as a text file
+
+    # Function to save the input as a text file
     def save(self):
         # Ask user to choose the file location
         filename = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
         if filename:
             try:
-                # Get input text from title and content areas
-                title_text = self.text_area.get("1.0", "end-1c")
-                content_text = self.text_input.get("1.0", "end-1c")
-                
                 # Write input text to the chosen file
                 with open(filename, "w") as f:
+                    # Get input text from title and content areas
+                    title_text = self.text_area.get("1.0", "end-1c")
+                    content_text = self.text_input.get("1.0", "end-1c")
                     f.write("Title:\n")
                     f.write(title_text + "\n\n")
                     f.write("Content:\n")
                     f.write(content_text)
             except Exception as e:
                 print("An error occurred while saving the file:", e)
-                
+            
+            # Call the method to save task to notes.txt
+            self.save_note_to_file()
+
+    def save_note_to_file(self):
         with open("notes.txt", "a", encoding='utf-8') as file:
-            file.write("{title_text}"+"{content_text}\n")
-    
+            # Get input text from title and content areas
+            title_text = self.text_area.get("1.0", "end-1c")
+            content_text = self.text_input.get("1.0", "end-1c")
+            file.write(f"{title_text},{content_text}\n")
+
     def __init__(self, root):
         self.root = root
         self.fontSize = 12
         self.fontStyle = 'Arial'
-        
+
         # State variables for font attributes
         self.is_bold = False
         self.is_italic = False
         self.is_underline = False
-        
+
         # Colors
         self.white = "#ffffff"
         self.black = "#000000"
@@ -46,11 +52,11 @@ class TextEditor:
         self.darkBG3 = "#5c5f64"
         self.brightBG1 = "#e3e5e8"
         self.brightBG2 = "#f7f6f7"
-      
+
         # Text frame
         self.text_frame = Frame(self.root, border=0)
         self.text_frame.pack(padx=10, pady=10)
-        
+
         # Label frame for title
         self.labelframe = LabelFrame(self.text_frame, width=400, height=50, text='標題', border=0)
         self.labelframe.pack(padx=10, pady=2)
@@ -108,7 +114,7 @@ class TextEditor:
         self.leftAlignButton.grid(row=0, column=7, padx=5)
 
         self.center_align_image = Image.open('icon/center.png')
-        self.center_align_icon = ImageTk.PhotoImage(self.center_align_image) 
+        self.center_align_icon = ImageTk.PhotoImage(self.center_align_image)
         self.centerAlignButton = Button(self.tool_bar, image=self.center_align_icon, command=self.align_center)
         self.centerAlignButton.grid(row=0, column=8, padx=5)
 
@@ -121,7 +127,7 @@ class TextEditor:
         self.save_icon = ImageTk.PhotoImage(self.save_image)
         self.saveButton = Button(self.tool_bar, image=self.save_icon, command=self.save)
         self.saveButton.grid(row=0, column=10, padx=5)
-        
+
         # Label frame for content
         self.contentframe = LabelFrame(self.text_frame, width=400, height=150, text='內容', border=0)
         self.contentframe.pack(padx=10, pady=4)
@@ -131,7 +137,7 @@ class TextEditor:
         self.text_input.pack(fill=BOTH, expand=True)
 
         self.root.mainloop()
-    
+
     # Function to change font style
     def font_style(self, event=None):
         self.fontStyle = self.font_family_variable.get()
@@ -193,12 +199,12 @@ class TextEditor:
         self.text_input.tag_remove('right', '1.0', END)
         self.text_input.tag_config('center', justify=CENTER)
         self.text_input.tag_add('center', '1.0', END)
-                
+
     def toggle_mode(self, mode_day):
         # change color
         self.mode_day = mode_day
         if self.mode_day:
-            self.currentbg_color = self.darkBG2   
+            self.currentbg_color = self.darkBG2
             self.currentfg_color = self.white
         else:
             self.currentbg_color = self.brightBG2

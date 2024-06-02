@@ -61,9 +61,12 @@ class NoteApp:
         self.information_frame = tk.Frame(self.root, bd=0, bg=self.darkBG1)
         self.information_frame.place(x=940, y=40, width=300, height=728)
         self.DoList = tk.Frame(self.information_frame, bg=self.darkBG1)
-        self.DoList.place(x=0, y=0, width=300, height=768)
+        self.DoList.place(x=0, y=0, width=300, height=364)
+        self.NoteList= tk.Frame(self.information_frame, bg=self.darkBG1 ,bd=1)
+        self.NoteList.place(x=0, y=404, width=300, height=364)
 
         self.load_tasks()
+        self.load_notes()
         
         # Icon location
         self.calender_icon_path = Image.open("icon/daily-calendar (1).png").resize((20, 20))
@@ -239,6 +242,16 @@ class NoteApp:
                 self.load_tasks()
                 # 更新最后修改时间
                 self.last_modification_time = current_modification_time
+        if os.path.exists("notes.txt"):
+            # 获取文件的最后修改时间
+            current_modification_time = os.path.getmtime("notes.txt")
+
+            # 比较最后修改时间是否有变化
+            if current_modification_time != self.last_modification_time:
+                # 重新加载任务数据
+                self.load_notes()
+                # 更新最后修改时间
+                self.last_modification_time = current_modification_time
 
         # 重新注册定时器
         self.root.after(1000, self.check_file_changes)
@@ -255,6 +268,22 @@ class NoteApp:
                     task = task.strip().split(",")
                     task_text = f"{task[0]} {task[1]} {task[2]}"
                     label = tk.Label(self.DoList, text=task_text, bg="#696969", fg=self.white, font=("宋體", 18))
+                    label.grid(row=i, column=0, sticky="w", padx=10, pady=10)
+        except FileNotFoundError:
+            print("找不到檔案")
+            
+    def load_notes(self):
+        try:
+            # 清除舊的Label
+            for widget in self.NoteList.winfo_children():
+                widget.destroy()
+            
+            with open("notes.txt", "r", encoding='utf-8') as file:
+                notes = file.readlines()
+                for i, note in enumerate(notes):
+                    note = note.strip().split(",")
+                    note_text = f"{note[0]} {note[1]}"
+                    label = tk.Label(self.NoteList, text=note_text, bg="#696969", fg=self.white, font=("宋體", 18))
                     label.grid(row=i, column=0, sticky="w", padx=10, pady=10)
         except FileNotFoundError:
             print("找不到檔案")
