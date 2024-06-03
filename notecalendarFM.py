@@ -176,7 +176,7 @@ class CalendarFM:
                     day = mycalendar[i][j]
                     formatted_date = "{}/{:02d}/{:02d}".format(self.year.get(), self.month.get(), day)
                     self.image = self.off_on_image if formatted_date in self.tasks else self.off_off_image
-                    cell_label = tk.Label(frame, text=day, bg=self.darkBG2, fg=self.white, image=self.image, compound="bottom",
+                    cell_label = tk.Label(frame, text=day, bg=self.currentbg_color, fg=self.currentfg_color, image=self.image, compound="bottom",
                                           activebackground="#4c4e52", activeforeground=self.white, relief="ridge",
                                           width=94, height=97, bd=1, font=('Helvetica', 16, 'bold'))
                     cell_label.grid(row=i+1, column=j, padx=0, pady=0)
@@ -184,7 +184,7 @@ class CalendarFM:
                     row_labels.append(cell_label)
                 else:
                     if mycalendar[i][7] != 7:
-                        cell_label = tk.Button(frame, text="", bg=self.darkBG2, fg=self.white, activebackground=self.darkBG2,
+                        cell_label = tk.Button(frame, text="", bg=self.currentbg_color, fg=self.currentfg_color, activebackground=self.darkBG2,
                                                activeforeground=self.white, relief="ridge", width=10, height=5, bd=1,
                                                font=('Helvetica', 12))
                         cell_label.grid(row=i+1, column=j, padx=0, pady=0)
@@ -251,7 +251,7 @@ class CalendarFM:
         self.calendar_frame.grid(row=1, column=0, columnspan=7)
 
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = CalendarFM(root)
-    root.mainloop()
+# if __name__ == "__main__":
+#     root = tk.Tk()
+#     app = CalendarFM(root)
+#     root.mainloop()
