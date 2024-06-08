@@ -68,28 +68,36 @@ class Home:
         self.root.after(1000, self.check_file_changes)
 
     def load_tasks(self):
+        if not self.DoList.winfo_exists():
+            return
+        for widget in self.DoList.winfo_children():
+            widget.destroy()
         try:
             with open("tasks.txt", "r", encoding='utf-8') as file:
                 tasks = file.readlines()
                 for i, task in enumerate(tasks):
                     task = task.strip().split(",")
                     task_text = f"{task[0]}\n{task[1]}\n{task[2]}"
-                    self.label = tk.Label(self.DoList, text=task_text, bg=self.currentactive_color, fg=self.currentfg_color, font=("宋體", 18), width=10, height=5)
+                    label = tk.Label(self.DoList, text=task_text, bg=self.currentactive_color, fg=self.currentfg_color, font=("宋體", 18), width=10, height=5)
                     row, col = divmod(i, 5)
-                    self.label.grid(row=row, column=col, padx=10, pady=10)
+                    label.grid(row=row, column=col, padx=10, pady=10)
         except FileNotFoundError:
             print("找不到檔案")
 
     def load_notes(self):
+        if not self.NoteList.winfo_exists():
+            return
+        for widget in self.NoteList.winfo_children():
+            widget.destroy()
         try:
             with open("notes.txt", "r", encoding='utf-8') as file:
                 notes = file.readlines()
                 for i, note in enumerate(notes):
                     note = note.strip().split(",")
                     note_text = f"{note[0]}\n{note[1]}"
-                    self.label = tk.Label(self.NoteList, text=note_text, bg=self.currentactive_color, fg=self.currentfg_color, font=("宋體", 18), width=10, height=5)
+                    label = tk.Label(self.NoteList, text=note_text, bg=self.currentactive_color, fg=self.currentfg_color, font=("宋體", 18), width=10, height=5)
                     row, col = divmod(i, 5)
-                    self.label.grid(row=row, column=col, padx=10, pady=10)
+                    label.grid(row=row, column=col, padx=10, pady=10)
         except FileNotFoundError:
             print("找不到檔案")
 
