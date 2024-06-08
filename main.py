@@ -55,8 +55,7 @@ class NoteApp:
         # Content Frame
         self.content_frame = tk.Frame(self.root, bd=1, bg=self.darkBG2)
         self.content_frame.place(x=50, y=40, width=890, height=728)
-        self.calendar_app = CalendarFM(self.content_frame, mode_day=self.mode_day, action1=self.text_click, action2=self.todo_click)
-        self.calendarr = True
+        
         
         # Information Frame
         self.information_frame = tk.Frame(self.root, bd=0, bg=self.darkBG1)
@@ -85,6 +84,11 @@ class NoteApp:
         self.menu_btn = tk.Button(self.title_frame,text="menu", image=self.menu_icon, bd=0, cursor="hand2", command=self.toggle_menu)
         self.menu_btn.image = self.menu_icon
         self.menu_btn.place(x=7, y=2, width=32, height=32)
+        
+        self.home_app = Home(self.content_frame, mode_day=self.mode_day)
+        self.content_frame.place(x=50, y=40, width=1150, height=768)
+        self.information_frame.place(x=1200, y=40, width=0, height=728)
+        self.home = True
 # 
     def create_menu_buttons(self):
         self.menu_buttons = []
@@ -157,6 +161,14 @@ class NoteApp:
             self.menu_expanded = True
         # Recreate menu buttons
         self.create_menu_buttons()
+        if self.home == True:
+            if self.menu_expanded:
+                self.content_frame.place(x=120, y=40, width=1080, height=768)
+                self.information_frame.place(x=940, y=40, width=0, height=728)
+            else:
+                self.content_frame.place(x=50, y=40, width=1150, height=768)
+                self.information_frame.place(x=1200, y=40, width=0, height=728)
+        
 #   
     def toggle_mode(self):
         if self.mode_day:
@@ -201,8 +213,6 @@ class NoteApp:
             self.mode_day = not self.mode_day
             self.text_app = TextEditor(self.content_frame)
             
-
-
         self.mode_day = not self.mode_day
         
     def home_click(self):
@@ -214,7 +224,14 @@ class NoteApp:
             widget.destroy()
         self.home_app = Home(self.content_frame, mode_day=self.mode_day)
         self.home_app.toggle_mode(not self.mode_day)
+        if self.menu_expanded:
+            self.content_frame.place(x=120, y=40, width=1080, height=768)
+            self.information_frame.place(x=940, y=40, width=0, height=728)
+        else:
+            self.content_frame.place(x=50, y=40, width=1150, height=768)
+            self.information_frame.place(x=1200, y=40, width=0, height=728)
 
+                
     def calendar_click(self):
         self.home = False
         self.calendarr = True
@@ -224,6 +241,8 @@ class NoteApp:
             widget.destroy()
         self.calendar_app = CalendarFM(self.content_frame, mode_day=self.mode_day, action1=self.text_click, action2=self.todo_click)
         self.calendar_app.toggle_mode(not self.mode_day)
+        self.content_frame.place(x=50, y=40, width=890, height=728)
+        self.information_frame.place(x=940, y=40, width=300, height=728)
 
     def text_click(self):
         self.home = False
@@ -234,6 +253,8 @@ class NoteApp:
             widget.destroy()
         if self.text:
             self.text_app = TextEditor(self.content_frame)  
+        self.content_frame.place(x=50, y=40, width=890, height=728)
+        self.information_frame.place(x=940, y=40, width=300, height=728)
         # self.text_app.toggle_mode(not self.mode_day)
 
     def todo_click(self):
@@ -245,7 +266,9 @@ class NoteApp:
             widget.destroy()
         self.todo_app = Todo(self.content_frame, mode_day=self.mode_day)
         self.todo_app.toggle_mode(not self.mode_day)
-        print(self.mode_day)
+        self.content_frame.place(x=50, y=40, width=890, height=728)
+        self.information_frame.place(x=940, y=40, width=300, height=728)
+        # print(self.mode_day)
 
     def check_file_changes(self):
         # 检查文件是否存在
