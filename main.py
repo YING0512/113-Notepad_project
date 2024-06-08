@@ -3,6 +3,7 @@ from PIL import Image, ImageTk
 from notecalendarFM import CalendarFM
 from notetodoFM import Todo
 from notetextFM import TextEditor
+from homeFM import Home
 import os
 
 class NoteApp:
@@ -37,8 +38,8 @@ class NoteApp:
         self.menu_frame.place(x=0, y=40, width=50, height=660)
         self.title_frame = tk.Frame(self.root, bg=self.darkBG3)
         self.title_frame.place(x=0, y=0, width=1200, height=40)
-        self.title_button = tk.Button(self.title_frame, image=self.title_icon, bd=0,  cursor="hand2",)
-        self.title_button.place(x=47, y=2, width=32, height=32)
+        self.home_button = tk.Button(self.title_frame, image=self.title_icon, bd=0,  cursor="hand2",command=self.home_click)
+        self.home_button.place(x=47, y=2, width=32, height=32)
         
         
         #Setting frame
@@ -187,7 +188,10 @@ class NoteApp:
             # Destroy old widgets and create new ones
         for widget in self.content_frame.winfo_children():
             widget.destroy()
-        if self.calendarr:
+        if self.home:
+            self.home_app = Home(self.content_frame, mode_day=self.mode_day)
+            self.home_app.toggle_mode(self.mode_day)
+        elif self.calendarr:
             self.calendar_app = CalendarFM(self.content_frame, mode_day=self.mode_day)
             self.calendar_app.toggle_mode(self.mode_day)
         elif self.todo:
@@ -200,8 +204,19 @@ class NoteApp:
 
 
         self.mode_day = not self.mode_day
+        
+    def home_click(self):
+        self.home = True
+        self.calendarr = False
+        self.text = False
+        self.todo = False
+        for widget in self.content_frame.winfo_children():
+            widget.destroy()
+        self.home_app = Home(self.content_frame, mode_day=self.mode_day)
+        self.home_app.toggle_mode(not self.mode_day)
 
     def calendar_click(self):
+        self.home = False
         self.calendarr = True
         self.text = False
         self.todo = False
@@ -211,6 +226,7 @@ class NoteApp:
         self.calendar_app.toggle_mode(not self.mode_day)
 
     def text_click(self):
+        self.home = False
         self.calendarr = False
         self.text = True
         self.todo = False
@@ -221,6 +237,7 @@ class NoteApp:
         # self.text_app.toggle_mode(not self.mode_day)
 
     def todo_click(self):
+        self.home = False
         self.calendarr = False
         self.text = False
         self.todo = True

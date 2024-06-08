@@ -5,7 +5,6 @@ from PIL import Image, ImageTk
 from tkinter import filedialog
 
 class TextEditor:
-
     # Function to save the input as a text file
     def save(self):
         # Ask user to choose the file location
