@@ -4,7 +4,7 @@ import os
 class Home:
     def __init__(self, root, mode_day=False):
         self.root = root
-        self.mainframe = tk.Frame(self.root, bg="#3f4145")
+        self.mainframe = tk.Frame(self.root, bg="#3f4145",bd=0)
         self.mainframe.place(x=0, y=0, width=1180, height=768)
 
         # Colors
@@ -24,7 +24,7 @@ class Home:
         self.DoListTitle = tk.Label(self.mainframe, text="待辦事項", bg=self.darkBG1, fg=self.white, bd=1, font=("宋體", 20, "bold","underline"))
         self.DoListTitle.place(x=0, y=0, width=1180, height=50)
         self.DoList = tk.Frame(self.mainframe, bg=self.currentbg_color)
-        self.DoList.place(x=0, y=50, width=890, height=359)
+        self.DoList.place(x=0, y=50, width=1180, height=359)
         
         self.NoteListTitle = tk.Label(self.mainframe, text="記事本", bg=self.darkBG1, fg=self.white, bd=1, font=("宋體", 20, "bold","underline"))
         self.NoteListTitle.place(x=0, y=409, width=1180, height=50)
@@ -42,10 +42,14 @@ class Home:
             self.currentbg_color = self.darkBG2
             self.currentfg_color = self.white
             self.currentactive_color = self.darkactive
+            self.DoListTitle.config(bg=self.darkBG1, fg=self.currentfg_color)
+            self.NoteListTitle.config(bg=self.darkBG1, fg=self.currentfg_color)
         else:
             self.currentbg_color = self.brightBG2
             self.currentfg_color = self.black
             self.currentactive_color = self.brightactive
+            self.DoListTitle.config(bg=self.brightBG1, fg=self.currentfg_color)
+            self.NoteListTitle.config(bg=self.brightBG1, fg=self.currentfg_color)
 
         # Update the background color of DoList and NoteList
         self.DoList.config(bg=self.currentbg_color)
@@ -109,7 +113,7 @@ class Home:
         except FileNotFoundError:
             print("找不到檔案")
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = Home(root)
-    root.mainloop()
+# if __name__ == "__main__":
+#     root = tk.Tk()
+#     app = Home(root)
+#     root.mainloop()

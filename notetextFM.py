@@ -27,7 +27,7 @@ class TextEditor:
 
         # Text frame
         self.text_frame = Frame(self.root, border=0)
-        self.text_frame.pack(padx=10, pady=10)
+        self.text_frame.pack(padx=10, pady=20)
 
         # Label frame for title
         self.labelframe = LabelFrame(self.text_frame, width=400, height=50, text='標題', border=0)

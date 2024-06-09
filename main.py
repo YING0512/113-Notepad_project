@@ -163,6 +163,7 @@ class NoteApp:
             self.content_frame.place(x=120, y=40, width=820, height=768)
             self.mode_button.config(text="")
             self.menu_expanded = True
+            
         # Recreate menu buttons
         self.create_menu_buttons()
         if self.home == True:
@@ -181,7 +182,10 @@ class NoteApp:
             self.set_frame.config(bg=self.darkBG1)
             self.content_frame.config(bg=self.darkBG2)
             self.information_frame.config(bg=self.darkBG1)
+            self.DoListTitle.config(bg=self.darkBG1,fg=self.white)
             self.DoList.config(bg=self.darkBG1)
+            self.NoteListTitle.config(bg=self.darkBG1,fg=self.white)
+            self.NoteList.config(bg=self.darkBG1)
             self.title_frame.config(bg=self.darkBG3)
             if self.menu_expanded:
                 self.mode_button.config(text=" 亮色模式")
@@ -191,7 +195,10 @@ class NoteApp:
             self.set_frame.config(bg=self.brightBG1)
             self.content_frame.config(bg=self.brightBG2)
             self.information_frame.config(bg=self.brightBG1)
+            self.DoListTitle.config(bg=self.brightBG1,fg=self.black)
             self.DoList.config(bg=self.brightBG1)
+            self.NoteListTitle.config(bg=self.brightBG1,fg=self.black)
+            self.NoteList.config(bg=self.brightBG1)
             self.title_frame.config(bg=self.brightBG3)
             if self.menu_expanded:
                 self.mode_button.config(text=" 暗色模式")
