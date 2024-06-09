@@ -5,36 +5,9 @@ from PIL import Image, ImageTk
 from tkinter import filedialog
 
 class TextEditor:
-    # Function to save the input as a text file
-    def save(self):
-        # Ask user to choose the file location
-        filename = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
-        if filename:
-            try:
-                # Write input text to the chosen file
-                with open(filename, "w") as f:
-                    # Get input text from title and content areas
-                    title_text = self.text_area.get("1.0", "end-1c")
-                    content_text = self.text_input.get("1.0", "end-1c")
-                    f.write("Title:\n")
-                    f.write(title_text + "\n\n")
-                    f.write("Content:\n")
-                    f.write(content_text)
-            except Exception as e:
-                print("An error occurred while saving the file:", e)
-            
-            # Call the method to save task to notes.txt
-            self.save_note_to_file()
-
-    def save_note_to_file(self):
-        with open("notes.txt", "a", encoding='utf-8') as file:
-            # Get input text from title and content areas
-            title_text = self.text_area.get("1.0", "end-1c")
-            content_text = self.text_input.get("1.0", "end-1c")
-            file.write(f"{title_text},{content_text}\n")
-
     def __init__(self, root):
         self.root = root
+        self.last_saved_file = None  # 初始化上一次儲存的文件路徑
         self.fontSize = 12
         self.fontStyle = 'Arial'
 
@@ -62,11 +35,17 @@ class TextEditor:
         self.input_font = ("Helvetica", 20)
 
         # Text area for title
-        self.text_area = Text(self.labelframe, width=400, height=1, wrap=NONE, font=self.input_font, bg=self.darkBG3, fg=self.white)
+        self.text_area = Text(self.labelframe, width=200, height=1, wrap=NONE, font=self.input_font, bg=self.darkBG3, fg=self.white)
         self.text_area.pack()
 
         # Bind the Return key to prevent line breaks
         self.text_area.bind("<Return>", lambda event: "break")
+
+        self.other_save_Button = Button(self.labelframe, text="另存新檔", compound=LEFT, command=self.save)
+        self.other_save_Button.pack(side=RIGHT, padx=5)
+        
+        self.saveButton = Button(self.labelframe, text="存檔", compound=LEFT, command=self.save_to_other_file)
+        self.saveButton.pack(side=RIGHT, padx=5)
 
         # Tool bar
         self.tool_bar = Label(self.text_frame)
@@ -122,11 +101,6 @@ class TextEditor:
         self.rightAlignButton = Button(self.tool_bar, image=self.right_align_icon, command=self.align_right)
         self.rightAlignButton.grid(row=0, column=9, padx=5)
 
-        self.save_image = Image.open('icon/save.png')
-        self.save_icon = ImageTk.PhotoImage(self.save_image)
-        self.saveButton = Button(self.tool_bar, image=self.save_icon, command=self.save)
-        self.saveButton.grid(row=0, column=10, padx=5)
-
         # Label frame for content
         self.contentframe = LabelFrame(self.text_frame, width=400, height=150, text='內容', border=0)
         self.contentframe.pack(padx=10, pady=4)
@@ -134,6 +108,9 @@ class TextEditor:
         # Text input for content
         self.text_input = Text(self.contentframe, width=400, height=150, wrap='word', font=(self.fontStyle, self.fontSize), bg=self.darkBG3, fg=self.white)
         self.text_input.pack(fill=BOTH, expand=True)
+
+        # Change colors and mode
+        self.toggle_mode(mode_day=True)
 
         self.root.mainloop()
 
@@ -156,7 +133,7 @@ class TextEditor:
             font_attributes.append('italic')
         if self.is_underline:
             font_attributes.append('underline')
-        self.text_input.config(font=font_attributes)
+            self.text_input.config(font=font_attributes)
 
     # Function to toggle bold
     def bold_text(self):
@@ -212,6 +189,49 @@ class TextEditor:
         # Update colors
         self.text_area.config(bg=self.currentbg_color, fg=self.currentfg_color)
         self.text_input.config(bg=self.currentbg_color, fg=self.currentfg_color)
+
+    def save(self):
+        filename = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
+        if filename:
+            try:
+                with open(filename, "w") as f:
+                    title_text = self.text_area.get("1.0", "end-1c")
+                    content_text = self.text_input.get("1.0", "end-1c")
+                    f.write("Title:\n")
+                    f.write(title_text + "\n\n")
+                    f.write("Content:\n")
+                    f.write(content_text)
+                
+            # 更新最後一次儲存的文件路徑
+                self.last_saved_file = filename
+            except Exception as e:
+                print("An error occurred while saving the file:", e)
+        self.save_note_to_file()
+
+    def save_note_to_file(self):
+        with open("notes.txt", "a", encoding='utf-8') as file:
+            title_text = self.text_area.get("1.0", "end-1c")
+            content_text = self.text_input.get("1.0", "end-1c")
+            file.write(f"{title_text},{content_text}\n")
+
+    def save_to_other_file(self):
+        if self.last_saved_file:  
+            filename = self.last_saved_file
+            try:
+                with open(filename, "w") as f:
+                    title_text = self.text_area.get("1.0", "end-1c")
+                    content_text = self.text_input.get("1.0", "end-1c")
+                    f.write("Title:\n")
+                    f.write(title_text + "\n\n")
+                    f.write("Content:\n")
+                    f.write(content_text)
+            # Update notes file
+                self.save_note_to_file()
+            except Exception as e:
+                print("An error occurred while saving to other file:", e)
+        else:
+            print("No file has been previously saved.")
+
 
 # if __name__ == "__main__":
 #     root = Tk()

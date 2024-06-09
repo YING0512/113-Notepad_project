@@ -12,6 +12,7 @@ class Todo:
         self.mode_day = mode_day
         self.tasks = []
         self.reminders = []
+        self.DELETE_DELAY = 30 * 24 * 60 * 60  # 設定過期事件在30天後自動刪除（30天的秒數）
 
         # Colors
         self.white = "#ffffff"
@@ -66,8 +67,16 @@ class Todo:
         self.btn_delete_task.pack(side="left", padx=5)
 
         # Listbox to display tasks
-        self.lb_tasks = tk.Listbox(self.root, width=60, height=15)
-        self.lb_tasks.pack(pady=10, padx=10, fill="both", expand=True)
+        self.lb_frame = tk.Frame(root)
+        self.lb_frame.pack(pady=10, padx=10, fill="both", expand=True)
+        self.lb_tasks = tk.Listbox(self.lb_frame, width=60, height=15)
+        self.lb_tasks.pack(side="left", fill="both", expand=True)
+
+        # Scrollbar for the listbox
+        self.scrollbar = tk.Scrollbar(self.lb_frame)
+        self.scrollbar.pack(side="right", fill="y")
+        self.lb_tasks.config(yscrollcommand=self.scrollbar.set)
+        self.scrollbar.config(command=self.lb_tasks.yview)
 
         # Load tasks from file
         self.load_tasks_from_file()
@@ -76,6 +85,13 @@ class Todo:
         # Start a new thread to monitor reminders
         self.thread = Thread(target=self.check_reminders, daemon=True)
         self.thread.start()
+        
+        # Information about automatic deletion
+        lbl_info = tk.Label(root, text=f"過期事項將在 {self.DELETE_DELAY // (24 * 60 * 60)} 天後自動刪除", bg="#F0F0F0", font=("Arial", 10))
+        lbl_info.pack(pady=5, fill="x")
+
+        # Start checking reminders
+        self.check_reminders()
 
     def toggle_mode(self, mode_day):
         # Change color
@@ -149,16 +165,37 @@ class Todo:
             self.delete_task_from_file(task_to_delete)
             messagebox.showinfo("提示", f"已刪除 '{task_title}'")
     
+    # Function to mark task as expired
+    def mark_task_expired(self,task):
+        self.index = self.tasks.index(task)
+        self.tasks[self.index] = f"~{task}~"
+        self.update_listbox()
+
+    # Function to check reminders and handle expired tasks
+    
     # Function to check reminders
     def check_reminders(self):
-        while True:
-            current_time = datetime.datetime.now()
-            for reminder in self.reminders:
-                reminder_time, task = reminder
-                if current_time >= reminder_time:
-                    messagebox.showinfo("提醒", f"'{task}'")
-                    self.reminders.remove(reminder)
-            time.sleep(1)
+        current_time = datetime.datetime.now()
+        expired_reminders = []
+        for reminder in self.reminders:
+            reminder_time, task = reminder
+            if current_time >= reminder_time:
+                messagebox.showinfo("提醒", f"注意事項 '{task}'!")
+                expired_reminders.append(reminder)
+                self.mark_task_expired(task)
+                # 設定一段時間後自動刪除
+                self.root.after(self.DELETE_DELAY * 1000, lambda t=task: self.delete_task_by_name(t))
+        for reminder in expired_reminders:
+            self.reminders.remove(reminder)
+            self.root.after(1000, self.check_reminders)  # 每秒檢查一次提醒
+
+    # Function to delete a task by its name
+    def delete_task_by_name(self,task):
+        task_with_strike = f"~{task}~"
+        if task_with_strike in self.tasks:
+            self.tasks.remove(task_with_strike)
+            self.update_listbox()
+            self.lbl_display["text"] = f"已自動刪除過期事項 '{task}'"
 
     # Function to save task to file
     def save_task_to_file(self, task):

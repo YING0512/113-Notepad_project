@@ -1,8 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import datetime
-import time
-from threading import Thread
 from tkcalendar import DateEntry
 
 root = tk.Tk()
@@ -12,6 +10,7 @@ root.geometry("800x600")
 
 tasks = []
 reminders = []
+DELETE_DELAY = 30 * 24 * 60 * 60  # 設定過期事件在30天後自動刪除（30天的秒數）
 
 # Function to update the listbox with tasks
 def update_listbox():
@@ -54,16 +53,35 @@ def delete_task():
         update_listbox()
         lbl_display["text"] = f"已刪除 '{selected_task}'"
 
-# Function to check reminders
+# Function to mark task as expired
+def mark_task_expired(task):
+    index = tasks.index(task)
+    tasks[index] = f"~{task}~"
+    update_listbox()
+
+# Function to check reminders and handle expired tasks
 def check_reminders():
-    while True:
-        current_time = datetime.datetime.now()
-        for reminder in reminders:
-            reminder_time, task = reminder
-            if current_time >= reminder_time:
-                messagebox.showinfo("提醒", f"注意事項 '{task}'!")
-                reminders.remove(reminder)
-        time.sleep(1)
+    current_time = datetime.datetime.now()
+    expired_reminders = []
+    for reminder in reminders:
+        reminder_time, task = reminder
+        if current_time >= reminder_time:
+            messagebox.showinfo("提醒", f"注意事項 '{task}'!")
+            expired_reminders.append(reminder)
+            mark_task_expired(task)
+            # 設定一段時間後自動刪除
+            root.after(DELETE_DELAY * 1000, lambda t=task: delete_task_by_name(t))
+    for reminder in expired_reminders:
+        reminders.remove(reminder)
+    root.after(1000, check_reminders)  # 每秒檢查一次提醒
+
+# Function to delete a task by its name
+def delete_task_by_name(task):
+    task_with_strike = f"~{task}~"
+    if task_with_strike in tasks:
+        tasks.remove(task_with_strike)
+        update_listbox()
+        lbl_display["text"] = f"已自動刪除過期事項 '{task}'"
 
 # Frame for the input section
 input_frame = tk.Frame(root, bg="#F0F0F0")
@@ -97,21 +115,31 @@ ampm_optionmenu.pack(side="left", padx=5)
 btn_add_task = tk.Button(input_frame, text="增加待辦事項並設定提醒", fg="white", bg="#6CAE75", command=add_task)
 btn_add_task.pack(side="left", padx=5)
 
-# Button to delete selected task (moved to the top)
-btn_delete_task = tk.Button(input_frame, text="刪除選定事項", fg="white",
-bg="#EF5350", command=delete_task)
+# Button to delete selected task
+btn_delete_task = tk.Button(input_frame, text="刪除選定事項", fg="white", bg="#EF5350", command=delete_task)
 btn_delete_task.pack(side="left", padx=5)
 
 # Listbox to display tasks
-lb_tasks = tk.Listbox(root, width=60, height=15)
-lb_tasks.pack(pady=10, padx=10, fill="both", expand=True)
+lb_frame = tk.Frame(root)
+lb_frame.pack(pady=10, padx=10, fill="both", expand=True)
+lb_tasks = tk.Listbox(lb_frame, width=60, height=15)
+lb_tasks.pack(side="left", fill="both", expand=True)
+
+# Scrollbar for the listbox
+scrollbar = tk.Scrollbar(lb_frame)
+scrollbar.pack(side="right", fill="y")
+lb_tasks.config(yscrollcommand=scrollbar.set)
+scrollbar.config(command=lb_tasks.yview)
 
 # Label to display status
 lbl_display = tk.Label(root, text="", bg="#F0F0F0", font=("Arial", 12))
 lbl_display.pack(pady=5, fill="x")
 
-# Start a new thread to monitor reminders
-thread = Thread(target=check_reminders)
-thread.start()
+# Information about automatic deletion
+lbl_info = tk.Label(root, text=f"過期事項將在 {DELETE_DELAY // (24 * 60 * 60)} 天後自動刪除", bg="#F0F0F0", font=("Arial", 10))
+lbl_info.pack(pady=5, fill="x")
+
+# Start checking reminders
+check_reminders()
 
 root.mainloop()
