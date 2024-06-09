@@ -4,6 +4,8 @@ import os
 class Home:
     def __init__(self, root, mode_day=False):
         self.root = root
+        self.mainframe = tk.Frame(self.root, bg="#3f4145")
+        self.mainframe.place(x=0, y=0, width=1180, height=768)
 
         # Colors
         self.white = "#ffffff"
@@ -18,10 +20,16 @@ class Home:
         self.currentfg_color = self.white
         self.currentactive_color = self.darkactive
 
-        self.DoList = tk.Frame(self.root, bg=self.currentbg_color)
-        self.DoList.pack(fill=tk.BOTH, expand=True)
-        self.NoteList = tk.Frame(self.root, bg=self.currentbg_color)
-        self.NoteList.pack(fill=tk.BOTH, expand=True)
+        # Adjusted Positions and Sizes
+        self.DoListTitle = tk.Label(self.mainframe, text="待辦事項", bg=self.darkBG1, fg=self.white, bd=1, font=("宋體", 20, "bold","underline"))
+        self.DoListTitle.place(x=0, y=0, width=1180, height=50)
+        self.DoList = tk.Frame(self.mainframe, bg=self.currentbg_color)
+        self.DoList.place(x=0, y=50, width=890, height=359)
+        
+        self.NoteListTitle = tk.Label(self.mainframe, text="記事本", bg=self.darkBG1, fg=self.white, bd=1, font=("宋體", 20, "bold","underline"))
+        self.NoteListTitle.place(x=0, y=409, width=1180, height=50)
+        self.NoteList = tk.Frame(self.mainframe, bg=self.currentbg_color)
+        self.NoteList.place(x=0, y=459, width=1180, height=309)
         
         self.mode_day = mode_day
         self.last_modification_time = 0
@@ -65,7 +73,7 @@ class Home:
                 self.last_modification_time = current_modification_time
 
         # Schedule the next check
-        self.root.after(1000, self.check_file_changes)
+        self.mainframe.after(1000, self.check_file_changes)
 
     def load_tasks(self):
         if not self.DoList.winfo_exists():
@@ -79,7 +87,7 @@ class Home:
                     task = task.strip().split(",")
                     task_text = f"{task[0]}\n{task[1]}\n{task[2]}"
                     label = tk.Label(self.DoList, text=task_text, bg=self.currentactive_color, fg=self.currentfg_color, font=("宋體", 18), width=10, height=5)
-                    row, col = divmod(i, 5)
+                    row, col = divmod(i, 4)
                     label.grid(row=row, column=col, padx=10, pady=10)
         except FileNotFoundError:
             print("找不到檔案")
@@ -96,7 +104,7 @@ class Home:
                     note = note.strip().split(",")
                     note_text = f"{note[0]}\n{note[1]}"
                     label = tk.Label(self.NoteList, text=note_text, bg=self.currentactive_color, fg=self.currentfg_color, font=("宋體", 18), width=10, height=5)
-                    row, col = divmod(i, 5)
+                    row, col = divmod(i, 4)
                     label.grid(row=row, column=col, padx=10, pady=10)
         except FileNotFoundError:
             print("找不到檔案")

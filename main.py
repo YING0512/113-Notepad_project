@@ -60,10 +60,14 @@ class NoteApp:
         # Information Frame
         self.information_frame = tk.Frame(self.root, bd=0, bg=self.darkBG1)
         self.information_frame.place(x=940, y=40, width=300, height=728)
+        self.DoListTitle = tk.Label(self.information_frame, text="待辦事項", bg=self.darkBG1, fg=self.white, bd=1, font=("宋體", 20, "bold","underline"))
+        self.DoListTitle.place(x=0, y=0, width=300, height=40)
         self.DoList = tk.Frame(self.information_frame, bg=self.darkBG1)
-        self.DoList.place(x=0, y=0, width=300, height=364)
+        self.DoList.place(x=0, y=40, width=300, height=324)
+        self.NoteListTitle = tk.Label(self.information_frame, text="記事本", bg=self.darkBG1, fg=self.white, bd=1, font=("宋體", 20, "bold","underline"))
+        self.NoteListTitle.place(x=0, y=324, width=300, height=40)
         self.NoteList= tk.Frame(self.information_frame, bg=self.darkBG1 ,bd=1)
-        self.NoteList.place(x=0, y=404, width=300, height=364)
+        self.NoteList.place(x=0, y=364, width=300, height=324)
 
         self.load_tasks()
         self.load_notes()

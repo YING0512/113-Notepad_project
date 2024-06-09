@@ -7,7 +7,7 @@ class CalendarFM:
     def __init__(self, parent, mode_day=False, action1=None, action2=None):
         self.parent = parent
         self.mainframe = tk.Frame(self.parent, bg="#3f4145")
-        self.mainframe.pack(pady=40)
+        self.mainframe.pack(pady=20)
         self.selected_cell_label = None
         self.action1 = action1
         self.action2 = action2
@@ -76,18 +76,10 @@ class CalendarFM:
             self.currentbg_color = self.darkBG2
             self.currentfg_color = self.white
             self.currentactive_color = self.darkactive
-            # self.off_offimage = self.woff_off_image
-            # self.off_onimage = self.woff_off_image
-            # self.on_offimage = self.woff_off_image
-            # self.on_onimage = self.woff_off_image
         else:
             self.currentbg_color = self.brightBG2
             self.currentfg_color = self.black
             self.currentactive_color = self.brightactive
-            # self.off_offimage = self.off_off_image
-            # self.off_onimage = self.off_off_image
-            # self.on_offimage = self.off_off_image
-            # self.on_onimage = self.off_off_image
 
         self.mainframe.config(bg=self.currentbg_color)
         self.year_month_frame.config(bg=self.currentbg_color)

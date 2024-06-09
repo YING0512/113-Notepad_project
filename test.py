@@ -1,145 +1,111 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
-import datetime
-from tkcalendar import DateEntry
+import os
 
-root = tk.Tk()
-root.configure(bg="#F0F0F0")
-root.title("待辦事項")
-root.geometry("800x600")
+class Home:
+    def __init__(self, root, mode_day=False):
+        self.root = root
 
-tasks = []
-reminders = []
-DELETE_DELAY = 30 * 24 * 60 * 60  # 設定過期事件在30天後自動刪除（30天的秒數）
+        # Colors
+        self.white = "#ffffff"
+        self.black = "#000000"
+        self.darkBG1 = "#2d2f32"
+        self.darkBG2 = "#3f4145"
+        self.darkactive = "#4c4e52"
+        self.brightBG1 = "#c0c0c0"
+        self.brightBG2 = "#dfdfdf"
+        self.brightactive = "#f1f0f2"
+        self.currentbg_color = self.darkBG2
+        self.currentfg_color = self.white
+        self.currentactive_color = self.darkactive
 
-# Function to update the listbox with tasks
-def update_listbox():
-    lb_tasks.delete(0, "end")
-    for task in tasks:
-        lb_tasks.insert("end", task)
+        self.DoListTitle = tk.Label(self.root, text="待辦事項", bg=self.darkBG1, fg=self.white, bd=1, font=("宋體", 20, "bold","underline"))
+        self.DoListTitle.place(x=0, y=0, width=300, height=40)
+        self.DoList = tk.Frame(self.root, bg=self.currentbg_color)
+        self.DoList.place(x=0, y=40, width=300, height=324)
+        self.NoteListTitle = tk.Label(self.root, text="記事本", bg=self.darkBG1, fg=self.white, bd=1, font=("宋體", 20, "bold","underline"))
+        self.NoteListTitle.place(x=0, y=324, width=300, height=40)
+        self.NoteList = tk.Frame(self.root, bg=self.currentbg_color)
+        self.NoteList.place(x=0, y=364, width=300, height=324)
+        
+        self.mode_day = mode_day
+        self.last_modification_time = 0
+        self.check_file_changes()
+        
+    def toggle_mode(self, mode_day):
+        # Change color
+        self.mode_day = mode_day
+        if self.mode_day:
+            self.currentbg_color = self.darkBG2
+            self.currentfg_color = self.white
+            self.currentactive_color = self.darkactive
+        else:
+            self.currentbg_color = self.brightBG2
+            self.currentfg_color = self.black
+            self.currentactive_color = self.brightactive
 
-# Function to add a task and set a reminder
-def add_task():
-    task = txt_input.get()
-    if task:
-        tasks.append(task)
-        update_listbox()
-        txt_input.delete(0, "end")
-        set_reminder(task)
-    else:
-        lbl_display["text"] = "不能輸入空白"
+        # Update the background color of DoList and NoteList
+        self.DoList.config(bg=self.currentbg_color)
+        self.NoteList.config(bg=self.currentbg_color)
 
-# Function to set a reminder for a given task
-def set_reminder(task):
-    reminder_time_str = f"{cal.get_date()} {hour_spinbox.get()}:{minute_spinbox.get()} {ampm_combobox.get()}"
-    try:
-        reminder_time = datetime.datetime.strptime(reminder_time_str, "%Y-%m-%d %I:%M %p")
-    except ValueError:
-        lbl_display["text"] = "提醒時間格式不正確，請按照 YYYY-MM-DD hh:mm AM/PM 格式輸入。"
-        return
-    current_time = datetime.datetime.now()
-    if reminder_time <= current_time:
-        lbl_display["text"] = "提醒時間必須晚於當前時間。"
-        return
-    reminders.append((reminder_time, task))
-    print(f"提醒時間設定 '{task}' at {reminder_time.strftime('%Y-%m-%d %I:%M:%S %p')}")
+        # Update the background color of all labels in DoList and NoteList
+        for widget in self.DoList.winfo_children():
+            if isinstance(widget, tk.Label):
+                widget.config(bg=self.currentbg_color, fg=self.currentfg_color)
+        for widget in self.NoteList.winfo_children():
+            if isinstance(widget, tk.Label):
+                widget.config(bg=self.currentbg_color, fg=self.currentfg_color)
 
-# Function to delete a selected task
-def delete_task():
-    selected_index = lb_tasks.curselection()
-    if selected_index:
-        selected_task = lb_tasks.get(selected_index)
-        tasks.remove(selected_task)
-        update_listbox()
-        lbl_display["text"] = f"已刪除 '{selected_task}'"
+    def check_file_changes(self):
+        if os.path.exists("tasks.txt"):
+            current_modification_time = os.path.getmtime("tasks.txt")
+            if current_modification_time != self.last_modification_time:
+                self.load_tasks()
+                self.last_modification_time = current_modification_time
 
-# Function to mark task as expired
-def mark_task_expired(task):
-    index = tasks.index(task)
-    tasks[index] = f"~{task}~"
-    update_listbox()
+        if os.path.exists("notes.txt"):
+            current_modification_time = os.path.getmtime("notes.txt")
+            if current_modification_time != self.last_modification_time:
+                self.load_notes()
+                self.last_modification_time = current_modification_time
 
-# Function to check reminders and handle expired tasks
-def check_reminders():
-    current_time = datetime.datetime.now()
-    expired_reminders = []
-    for reminder in reminders:
-        reminder_time, task = reminder
-        if current_time >= reminder_time:
-            messagebox.showinfo("提醒", f"注意事項 '{task}'!")
-            expired_reminders.append(reminder)
-            mark_task_expired(task)
-            # 設定一段時間後自動刪除
-            root.after(DELETE_DELAY * 1000, lambda t=task: delete_task_by_name(t))
-    for reminder in expired_reminders:
-        reminders.remove(reminder)
-    root.after(1000, check_reminders)  # 每秒檢查一次提醒
+        # Schedule the next check
+        self.root.after(1000, self.check_file_changes)
 
-# Function to delete a task by its name
-def delete_task_by_name(task):
-    task_with_strike = f"~{task}~"
-    if task_with_strike in tasks:
-        tasks.remove(task_with_strike)
-        update_listbox()
-        lbl_display["text"] = f"已自動刪除過期事項 '{task}'"
+    def load_tasks(self):
+        if not self.DoList.winfo_exists():
+            return
+        for widget in self.DoList.winfo_children():
+            widget.destroy()
+        try:
+            with open("tasks.txt", "r", encoding='utf-8') as file:
+                tasks = file.readlines()
+                for i, task in enumerate(tasks):
+                    task = task.strip().split(",")
+                    task_text = f"{task[0]}\n{task[1]}\n{task[2]}"
+                    label = tk.Label(self.DoList, text=task_text, bg=self.currentactive_color, fg=self.currentfg_color, font=("宋體", 18), width=10, height=5)
+                    row, col = divmod(i, 5)
+                    label.grid(row=row, column=col, padx=10, pady=10)
+        except FileNotFoundError:
+            print("找不到檔案")
 
-# Frame for the input section
-input_frame = tk.Frame(root, bg="#F0F0F0")
-input_frame.pack(pady=10, padx=10, fill="x")
+    def load_notes(self):
+        if not self.NoteList.winfo_exists():
+            return
+        for widget in self.NoteList.winfo_children():
+            widget.destroy()
+        try:
+            with open("notes.txt", "r", encoding='utf-8') as file:
+                notes = file.readlines()
+                for i, note in enumerate(notes):
+                    note = note.strip().split(",")
+                    note_text = f"{note[0]}\n{note[1]}"
+                    label = tk.Label(self.NoteList, text=note_text, bg=self.currentactive_color, fg=self.currentfg_color, font=("宋體", 18), width=10, height=5)
+                    row, col = divmod(i, 5)
+                    label.grid(row=row, column=col, padx=10, pady=10)
+        except FileNotFoundError:
+            print("找不到檔案")
 
-# Entry field to add tasks
-txt_input = tk.Entry(input_frame, width=30)
-txt_input.pack(side="left", padx=5)
-
-# DateEntry for selecting date
-cal = DateEntry(input_frame, width=12, background='darkblue', foreground='white', borderwidth=2, year=2024)
-cal.pack(side="left", padx=5)
-
-# Labels and Spinboxes for time selection
-tk.Label(input_frame, text="時間:", bg="#F0F0F0").pack(side="left")
-hour_spinbox = tk.Spinbox(input_frame, from_=1, to=12, width=2)
-hour_spinbox.pack(side="left", padx=5)
-hour_spinbox.delete(0, 'end')
-hour_spinbox.insert(0, datetime.datetime.now().strftime("%I"))
-tk.Label(input_frame, text=":", bg="#F0F0F0").pack(side="left")
-minute_spinbox = tk.Spinbox(input_frame, from_=0, to=59, width=2)
-minute_spinbox.pack(side="left", padx=5)
-minute_spinbox.delete(0, 'end')
-minute_spinbox.insert(0, datetime.datetime.now().strftime("%M"))
-ampm_combobox = tk.StringVar(root)
-ampm_combobox.set(datetime.datetime.now().strftime("%p"))
-ampm_optionmenu = tk.OptionMenu(input_frame, ampm_combobox, "AM", "PM")
-ampm_optionmenu.pack(side="left", padx=5)
-
-# Button to add tasks and set reminders
-btn_add_task = tk.Button(input_frame, text="增加待辦事項並設定提醒", fg="white", bg="#6CAE75", command=add_task)
-btn_add_task.pack(side="left", padx=5)
-
-# Button to delete selected task
-btn_delete_task = tk.Button(input_frame, text="刪除選定事項", fg="white", bg="#EF5350", command=delete_task)
-btn_delete_task.pack(side="left", padx=5)
-
-# Listbox to display tasks
-lb_frame = tk.Frame(root)
-lb_frame.pack(pady=10, padx=10, fill="both", expand=True)
-lb_tasks = tk.Listbox(lb_frame, width=60, height=15)
-lb_tasks.pack(side="left", fill="both", expand=True)
-
-# Scrollbar for the listbox
-scrollbar = tk.Scrollbar(lb_frame)
-scrollbar.pack(side="right", fill="y")
-lb_tasks.config(yscrollcommand=scrollbar.set)
-scrollbar.config(command=lb_tasks.yview)
-
-# Label to display status
-lbl_display = tk.Label(root, text="", bg="#F0F0F0", font=("Arial", 12))
-lbl_display.pack(pady=5, fill="x")
-
-# Information about automatic deletion
-lbl_info = tk.Label(root, text=f"過期事項將在 {DELETE_DELAY // (24 * 60 * 60)} 天後自動刪除", bg="#F0F0F0", font=("Arial", 10))
-lbl_info.pack(pady=5, fill="x")
-
-# Start checking reminders
-check_reminders()
-
-root.mainloop()
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = Home(root)
+    root.mainloop()
