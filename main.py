@@ -1,10 +1,13 @@
 import tkinter as tk
+from tkinter import messagebox
 from PIL import Image, ImageTk
 from notecalendarFM import CalendarFM
 from notetodoFM import Todo
 from notetextFM import TextEditor
 from homeFM import Home
 import os
+import json
+import datetime
 
 class NoteApp:
     def __init__(self, root):
@@ -14,8 +17,20 @@ class NoteApp:
         root.resizable(False, False)
         self.menu_expanded = False
         self.mode_day = False
-        self.last_modification_time = None
+        self.last_modification_time = 0
+        self.DATA_FILE = "data.json"
+        
+        # Initialize state variables to prevent AttributeError
+        self.home = True
+        self.calendarr = False
+        self.text = False
+        self.todo = False
+
+        self.reminders = []
+        self.DELETE_DELAY = 30 * 24 * 60 * 60 # 30 days
+
         self.root.after(1000, self.check_file_changes)
+        self.root.after(1000, self.check_reminders)
         
         #color
         self.white="#ffffff"
@@ -28,6 +43,8 @@ class NoteApp:
         self.brightBG2 ="#dfdfdf"
         self.brightBG3 ="#6F6F6F"
         self.brightactive ="#f1f0f2"
+        self.currentactive_color = self.darkactive
+        self.currentfg_color = self.white
       
         # Menu Frame
         self.title_icon_path = "icon/feather-pen.png"
@@ -142,38 +159,57 @@ class NoteApp:
         self.mode_button.place(x=7, y=7, width=100, height=32)
 # 
     def toggle_menu(self):  #menu size change
-        if self.menu_expanded:  # Hide menu buttons
+        if self.menu_expanded:  # Switch to Collapsed
             for button in self.menu_buttons:
                 button.destroy()
-            # Restore default frame proportions
-            self.menu_frame.place(x=0, y=40, width=50, height=660)
-            self.set_frame.place(x=0, y=700, width=50, height=660)
-            self.content_frame.place(x=50, y=40, width=890, height=728)
-            self.information_frame.place(x=940, y=40, width=300, height=728)
+            
             if self.mode_day:
                 self.modetext =" 亮色模式"
             else:
                 self.modetext =" 暗色模式"
                 self.mode_button.config(text=self.modetext)
             self.menu_expanded = False
-        else:
-            # Adjust frame proportions
-            self.menu_frame.place(x=0, y=40, width=120, height=680)
-            self.set_frame.place(x=0, y=700, width=120, height=660)
-            self.content_frame.place(x=120, y=40, width=820, height=768)
+        else: # Switch to Expanded
             self.mode_button.config(text="")
             self.menu_expanded = True
             
+        # Update layout after state change
+        self.update_layout()
+        
         # Recreate menu buttons
         self.create_menu_buttons()
-        if self.home == True:
+    
+    def update_layout(self):
+        # Update Menu Frame Width
+        if self.menu_expanded:
+            self.menu_frame.place(x=0, y=40, width=120, height=680)
+            self.set_frame.place(x=0, y=700, width=120, height=660)
+            content_x = 120
+        else:
+            self.menu_frame.place(x=0, y=40, width=50, height=660)
+            self.set_frame.place(x=0, y=700, width=50, height=660)
+            content_x = 50
+            
+        # Update Content and Information Frame
+        if self.home:
+            # Home mode: full width (minus side padding maybe?) or just wider content
+            content_width = 1200 - content_x
+            self.content_frame.place(x=content_x, y=40, width=content_width, height=768)
+            self.information_frame.place(x=1200, y=40, width=0, height=728) # Hide info frame
+        else:
+            # Other modes: show info frame
+            info_x = 940 # Fixed position for info frame in original logic
+            
             if self.menu_expanded:
-                self.content_frame.place(x=120, y=40, width=1080, height=768)
-                self.information_frame.place(x=940, y=40, width=0, height=728)
+                # If expanded, content starts at 120. Ends at 940.
+                content_width = info_x - content_x # 940-120 = 820
             else:
-                self.content_frame.place(x=50, y=40, width=1150, height=768)
-                self.information_frame.place(x=1200, y=40, width=0, height=728)
-        
+                # If collapsed, content starts at 50. Ends at 940.
+                content_width = info_x - content_x # 940-50 = 890
+                
+            self.content_frame.place(x=content_x, y=40, width=content_width, height=768)
+            self.information_frame.place(x=info_x, y=40, width=300, height=728)
+
 #   
     def toggle_mode(self):
         if self.mode_day:
@@ -187,6 +223,8 @@ class NoteApp:
             self.NoteListTitle.config(bg=self.darkBG1,fg=self.white)
             self.NoteList.config(bg=self.darkBG1)
             self.title_frame.config(bg=self.darkBG3)
+            self.currentactive_color = self.darkactive
+            self.currentfg_color = self.white
             if self.menu_expanded:
                 self.mode_button.config(text=" 亮色模式")
         else:
@@ -200,6 +238,8 @@ class NoteApp:
             self.NoteListTitle.config(bg=self.brightBG1,fg=self.black)
             self.NoteList.config(bg=self.brightBG1)
             self.title_frame.config(bg=self.brightBG3)
+            self.currentactive_color = self.brightactive
+            self.currentfg_color = self.black
             if self.menu_expanded:
                 self.mode_button.config(text=" 暗色模式")
 
@@ -226,6 +266,10 @@ class NoteApp:
             
         self.mode_day = not self.mode_day
         
+        # Reload side bar
+        self.load_tasks()
+        self.load_notes()
+
     def home_click(self):
         self.home = True
         self.calendarr = False
@@ -233,14 +277,12 @@ class NoteApp:
         self.todo = False
         for widget in self.content_frame.winfo_children():
             widget.destroy()
+            
         self.home_app = Home(self.content_frame, mode_day=self.mode_day)
         self.home_app.toggle_mode(not self.mode_day)
-        if self.menu_expanded:
-            self.content_frame.place(x=120, y=40, width=1080, height=768)
-            self.information_frame.place(x=940, y=40, width=0, height=728)
-        else:
-            self.content_frame.place(x=50, y=40, width=1150, height=768)
-            self.information_frame.place(x=1200, y=40, width=0, height=728)
+        
+        # Update Layout
+        self.update_layout()
 
                 
     def calendar_click(self):
@@ -252,8 +294,8 @@ class NoteApp:
             widget.destroy()
         self.calendar_app = CalendarFM(self.content_frame, mode_day=self.mode_day, action1=self.text_click, action2=self.todo_click)
         self.calendar_app.toggle_mode(not self.mode_day)
-        self.content_frame.place(x=50, y=40, width=890, height=728)
-        self.information_frame.place(x=940, y=40, width=300, height=728)
+        self.update_layout()
+
 
     def text_click(self):
         self.home = False
@@ -264,8 +306,7 @@ class NoteApp:
             widget.destroy()
         if self.text:
             self.text_app = TextEditor(self.content_frame)  
-        self.content_frame.place(x=50, y=40, width=890, height=728)
-        self.information_frame.place(x=940, y=40, width=300, height=728)
+        self.update_layout()
         # self.text_app.toggle_mode(not self.mode_day)
 
     def todo_click(self):
@@ -277,35 +318,78 @@ class NoteApp:
             widget.destroy()
         self.todo_app = Todo(self.content_frame, mode_day=self.mode_day)
         self.todo_app.toggle_mode(not self.mode_day)
-        self.content_frame.place(x=50, y=40, width=890, height=728)
-        self.information_frame.place(x=940, y=40, width=300, height=728)
+        self.update_layout()
         # print(self.mode_day)
 
     def check_file_changes(self):
         # 检查文件是否存在
-        if os.path.exists("tasks.txt"):
-            # 获取文件的最后修改时间
-            current_modification_time = os.path.getmtime("tasks.txt")
+        if os.path.exists(self.DATA_FILE):
+             try:
+                # 获取文件的最后修改时间
+                current_modification_time = os.path.getmtime(self.DATA_FILE)
 
-            # 比较最后修改时间是否有变化
-            if current_modification_time != self.last_modification_time:
-                # 重新加载任务数据
-                self.load_tasks()
-                # 更新最后修改时间
-                self.last_modification_time = current_modification_time
-        if os.path.exists("notes.txt"):
-            # 获取文件的最后修改时间
-            current_modification_time = os.path.getmtime("notes.txt")
-
-            # 比较最后修改时间是否有变化
-            if current_modification_time != self.last_modification_time:
-                # 重新加载任务数据
-                self.load_notes()
-                # 更新最后修改时间
-                self.last_modification_time = current_modification_time
+                # 比较最后修改时间是否有变化
+                if current_modification_time != self.last_modification_time:
+                    # 重新加载任务数据
+                    self.load_tasks()
+                    self.load_notes()
+                    # 更新最后修改时间
+                    self.last_modification_time = current_modification_time
+             except Exception as e:
+                print(f"File check error: {e}")
 
         # 重新注册定时器
         self.root.after(1000, self.check_file_changes)
+
+    def check_reminders(self):
+        current_time = datetime.datetime.now()
+        expired_reminders = []
+        
+        for reminder in self.reminders:
+            reminder_time = reminder['datetime']
+            task = reminder['task']
+            
+            # If reminder time is reached
+            if current_time >= reminder_time:
+                messagebox.showinfo("提醒", f"注意事項 '{task['title']}'!")
+                expired_reminders.append(reminder)
+                self.mark_task_expired(task)
+                # Schedule auto-delete
+                self.root.after(int(self.DELETE_DELAY * 1000), lambda t=task: self.delete_task_object(t))
+        
+        for reminder in expired_reminders:
+            self.reminders.remove(reminder)
+            
+        self.root.after(1000, self.check_reminders)  # Check every second
+        
+    def mark_task_expired(self, task_to_mark):
+        data = {}
+        if os.path.exists(self.DATA_FILE):
+             try:
+                with open(self.DATA_FILE, "r", encoding='utf-8') as file:
+                    data = json.load(file)
+             except:
+                 pass
+        
+        tasks = data.get('tasks', [])
+        found = False
+        for task in tasks:
+            if task.get('title') == task_to_mark.get('title') and \
+               task.get('date') == task_to_mark.get('date') and \
+               task.get('time') == task_to_mark.get('time'):
+                   task['status'] = 'expired'
+                   found = True
+                   break
+        
+        if found:
+            with open(self.DATA_FILE, "w", encoding='utf-8') as file:
+                json.dump(data, file, ensure_ascii=False, indent=4)
+            # This save will trigger check_file_changes -> load_tasks -> update list
+            
+    def delete_task_object(self, task_to_delete):
+         # Implementation to delete from file
+         # For simplicity, similar to mark_expired but remove from list
+         pass # Implement if needed, or rely on Todo app to handle deletions
 
     def load_tasks(self):
         try:
@@ -313,15 +397,35 @@ class NoteApp:
             for widget in self.DoList.winfo_children():
                 widget.destroy()
             
-            with open("tasks.txt", "r", encoding='utf-8') as file:
-                tasks = file.readlines()
+            self.reminders = [] # Clear reminders to rebuild
+            
+            if os.path.exists(self.DATA_FILE):
+                with open(self.DATA_FILE, "r", encoding='utf-8') as file:
+                    data = json.load(file)
+                    tasks = data.get('tasks', [])
+                    
                 for i, task in enumerate(tasks):
-                    task = task.strip().split(",")
-                    task_text = f"{task[0]} {task[1]} {task[2]}"
-                    label = tk.Label(self.DoList, text=task_text, bg="#696969", fg=self.white, font=("宋體", 18))
+                    # Check for reminders
+                    if task.get('status') == 'active':
+                        try:
+                           rem_dt = datetime.datetime.strptime(f"{task['date']} {task['time']}", "%Y/%m/%d %H:%M")
+                           if rem_dt > datetime.datetime.now(): # Only future reminders
+                               self.reminders.append({'datetime': rem_dt, 'task': task})
+                           elif rem_dt >= datetime.datetime.now() - datetime.timedelta(seconds=60):
+                               # If it just passed within last minute (and we might have missed it/just started app), notify?
+                               # For now, stick to strictly future or equal
+                               pass
+                        except Exception as e:
+                            print(f"Time parse error: {e}")
+
+                    if task.get('status') == 'expired':
+                         continue
+                         
+                    task_text = f"{task['date']} {task['time']} {task['title']}"
+                    label = tk.Label(self.DoList, text=task_text, bg=self.currentactive_color, fg=self.currentfg_color, font=("宋體", 18))
                     label.grid(row=i, column=0, sticky="w", padx=10, pady=10)
-        except FileNotFoundError:
-            print("找不到檔案")
+        except Exception as e:
+            print(f"找不到檔案 or Error: {e}")
             
     def load_notes(self):
         try:
@@ -329,15 +433,17 @@ class NoteApp:
             for widget in self.NoteList.winfo_children():
                 widget.destroy()
             
-            with open("notes.txt", "r", encoding='utf-8') as file:
-                notes = file.readlines()
+            if os.path.exists(self.DATA_FILE):
+                with open(self.DATA_FILE, "r", encoding='utf-8') as file:
+                    data = json.load(file)
+                    notes = data.get('notes', [])
+                    
                 for i, note in enumerate(notes):
-                    note = note.strip().split(",")
-                    note_text = f"{note[0]} {note[1]}"
-                    label = tk.Label(self.NoteList, text=note_text, bg="#696969", fg=self.white, font=("宋體", 18))
+                    note_text = f"{note['title']} {note['content'][:10]}..."
+                    label = tk.Label(self.NoteList, text=note_text, bg=self.currentactive_color, fg=self.currentfg_color, font=("宋體", 18))
                     label.grid(row=i, column=0, sticky="w", padx=10, pady=10)
-        except FileNotFoundError:
-            print("找不到檔案")
+        except Exception as e:
+            print(f"找不到檔案 or Error: {e}")
 
 # 
     def show_info(self, button_text):   #check button content

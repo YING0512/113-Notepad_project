@@ -3,6 +3,8 @@ from tkinter.ttk import *
 from tkinter import font, colorchooser
 from PIL import Image, ImageTk
 from tkinter import filedialog
+import json
+import os
 
 class TextEditor:
     def __init__(self, root):
@@ -10,6 +12,7 @@ class TextEditor:
         self.last_saved_file = None  # 初始化上一次儲存的文件路徑
         self.fontSize = 12
         self.fontStyle = 'Arial'
+        self.DATA_FILE = "data.json"
 
         # State variables for font attributes
         self.is_bold = False
@@ -112,7 +115,7 @@ class TextEditor:
         # Change colors and mode
         self.toggle_mode(mode_day=True)
 
-        self.root.mainloop()
+        # self.root.mainloop() # Removed to prevent blocking when used as module
 
     # Function to change font style
     def font_style(self, event=None):
@@ -153,7 +156,8 @@ class TextEditor:
     # Function to select font color
     def color_select(self):
         color = colorchooser.askcolor()
-        self.text_input.config(fg=color[1])
+        if color[1]:
+            self.text_input.config(fg=color[1])
 
     # Function to align text right
     def align_right(self):
@@ -194,9 +198,9 @@ class TextEditor:
         filename = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
         if filename:
             try:
-                with open(filename, "w") as f:
-                    title_text = self.text_area.get("1.0", "end-1c")
-                    content_text = self.text_input.get("1.0", "end-1c")
+                title_text = self.text_area.get("1.0", "end-1c")
+                content_text = self.text_input.get("1.0", "end-1c")
+                with open(filename, "w", encoding='utf-8') as f:
                     f.write("Title:\n")
                     f.write(title_text + "\n\n")
                     f.write("Content:\n")
@@ -204,33 +208,58 @@ class TextEditor:
                 
             # 更新最後一次儲存的文件路徑
                 self.last_saved_file = filename
+                # Also save to internal JSON storage
+                self.save_note_to_json(title_text, content_text)
             except Exception as e:
                 print("An error occurred while saving the file:", e)
-        self.save_note_to_file()
+        # self.save_note_to_file() # Removed legacy txt save
 
-    def save_note_to_file(self):
-        with open("notes.txt", "a", encoding='utf-8') as file:
-            title_text = self.text_area.get("1.0", "end-1c")
-            content_text = self.text_input.get("1.0", "end-1c")
-            file.write(f"{title_text},{content_text}\n")
+    def save_note_to_json(self, title, content):
+        data = {}
+        if os.path.exists(self.DATA_FILE):
+             try:
+                with open(self.DATA_FILE, "r", encoding='utf-8') as file:
+                    data = json.load(file)
+             except:
+                 pass
+        
+        notes = data.get('notes', [])
+        
+        # Check if note with same title exists, update it
+        updated = False
+        for note in notes:
+            if note.get('title') == title:
+                note['content'] = content
+                updated = True
+                break
+        
+        if not updated:
+            notes.append({'title': title, 'content': content})
+            
+        data['notes'] = notes
+        
+        with open(self.DATA_FILE, "w", encoding='utf-8') as file:
+            json.dump(data, file, ensure_ascii=False, indent=4)
 
     def save_to_other_file(self):
+        title_text = self.text_area.get("1.0", "end-1c")
+        content_text = self.text_input.get("1.0", "end-1c")
+        
         if self.last_saved_file:  
             filename = self.last_saved_file
             try:
-                with open(filename, "w") as f:
-                    title_text = self.text_area.get("1.0", "end-1c")
-                    content_text = self.text_input.get("1.0", "end-1c")
+                with open(filename, "w", encoding='utf-8') as f:
                     f.write("Title:\n")
                     f.write(title_text + "\n\n")
                     f.write("Content:\n")
                     f.write(content_text)
-            # Update notes file
-                self.save_note_to_file()
             except Exception as e:
                 print("An error occurred while saving to other file:", e)
         else:
-            print("No file has been previously saved.")
+             print("No external file selected, saving implicitly to app storage.")
+             
+        # Always save to internal storage on "Save"
+        self.save_note_to_json(title_text, content_text)
 
 
 # if __name__ == "__main__":

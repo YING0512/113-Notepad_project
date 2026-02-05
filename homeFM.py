@@ -1,11 +1,13 @@
 import tkinter as tk
 import os
+import json
 
 class Home:
     def __init__(self, root, mode_day=False):
         self.root = root
         self.mainframe = tk.Frame(self.root, bg="#3f4145",bd=0)
         self.mainframe.place(x=0, y=0, width=1180, height=768)
+        self.DATA_FILE = "data.json"
 
         # Colors
         self.white = "#ffffff"
@@ -64,19 +66,18 @@ class Home:
                 widget.config(bg=self.currentbg_color, fg=self.currentfg_color)
 
     def check_file_changes(self):
-        if os.path.exists("tasks.txt"):
-            current_modification_time = os.path.getmtime("tasks.txt")
-            if current_modification_time != self.last_modification_time:
-                self.load_tasks()
-                self.last_modification_time = current_modification_time
-
-        if os.path.exists("notes.txt"):
-            current_modification_time = os.path.getmtime("notes.txt")
-            if current_modification_time != self.last_modification_time:
-                self.load_notes()
-                self.last_modification_time = current_modification_time
+        if os.path.exists(self.DATA_FILE):
+            try:
+                current_modification_time = os.path.getmtime(self.DATA_FILE)
+                if current_modification_time != self.last_modification_time:
+                    self.load_tasks()
+                    self.load_notes()
+                    self.last_modification_time = current_modification_time
+            except Exception as e:
+                print(f"Error checking file changes: {e}")
 
         # Schedule the next check
+        # Use a longer delay here to reduce CPU usage if needed, but 1000 is fine
         self.mainframe.after(1000, self.check_file_changes)
 
     def load_tasks(self):
@@ -85,16 +86,22 @@ class Home:
         for widget in self.DoList.winfo_children():
             widget.destroy()
         try:
-            with open("tasks.txt", "r", encoding='utf-8') as file:
-                tasks = file.readlines()
+            if os.path.exists(self.DATA_FILE):
+                with open(self.DATA_FILE, "r", encoding='utf-8') as file:
+                    data = json.load(file)
+                    tasks = data.get('tasks', [])
+                    
+                # Fix: Sort or cleanup
                 for i, task in enumerate(tasks):
-                    task = task.strip().split(",")
-                    task_text = f"{task[0]}\n{task[1]}\n{task[2]}"
+                    if task.get('status') == 'expired':
+                         continue # Skip expired on home
+                         
+                    task_text = f"{task['date']}\n{task['time']}\n{task['title']}"
                     label = tk.Label(self.DoList, text=task_text, bg=self.currentactive_color, fg=self.currentfg_color, font=("宋體", 18), width=10, height=5)
                     row, col = divmod(i, 4)
                     label.grid(row=row, column=col, padx=10, pady=10)
-        except FileNotFoundError:
-            print("找不到檔案")
+        except Exception as e:
+            print(f"Load tasks error: {e}")
 
     def load_notes(self):
         if not self.NoteList.winfo_exists():
@@ -102,16 +109,20 @@ class Home:
         for widget in self.NoteList.winfo_children():
             widget.destroy()
         try:
-            with open("notes.txt", "r", encoding='utf-8') as file:
-                notes = file.readlines()
+             if os.path.exists(self.DATA_FILE):
+                with open(self.DATA_FILE, "r", encoding='utf-8') as file:
+                    data = json.load(file)
+                    notes = data.get('notes', [])
+                    
                 for i, note in enumerate(notes):
-                    note = note.strip().split(",")
-                    note_text = f"{note[0]}\n{note[1]}"
+                    # Truncate content for display
+                    content_preview = note['content'][:20] + "..." if len(note['content']) > 20 else note['content']
+                    note_text = f"{note['title']}\n{content_preview}"
                     label = tk.Label(self.NoteList, text=note_text, bg=self.currentactive_color, fg=self.currentfg_color, font=("宋體", 18), width=10, height=5)
                     row, col = divmod(i, 4)
                     label.grid(row=row, column=col, padx=10, pady=10)
-        except FileNotFoundError:
-            print("找不到檔案")
+        except Exception as e:
+            print(f"Load notes error: {e}")
 
 # if __name__ == "__main__":
 #     root = tk.Tk()

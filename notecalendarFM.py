@@ -2,6 +2,8 @@ import calendar
 import tkinter as tk
 from datetime import datetime, timedelta
 from PIL import Image, ImageTk
+import json
+import os
 
 class CalendarFM:
     def __init__(self, parent, mode_day=False, action1=None, action2=None):
@@ -11,6 +13,7 @@ class CalendarFM:
         self.selected_cell_label = None
         self.action1 = action1
         self.action2 = action2
+        self.DATA_FILE = "data.json"
         
         # Colors
         self.white = "#ffffff"
@@ -49,7 +52,7 @@ class CalendarFM:
         self.won_on_image = self.resize_image(self.on_on_image_path, 48, 19)
 
         # Load tasks
-        self.tasks = self.load_tasks("tasks.txt")
+        self.tasks = self.load_tasks()
 
         # Initialize interface
         self.create_widgets()
@@ -59,15 +62,26 @@ class CalendarFM:
         image = image.resize((width, height), Image.LANCZOS)
         return ImageTk.PhotoImage(image)
 
-    def load_tasks(self, filename):
+    def load_tasks(self):
         tasks = {}
-        with open(filename, "r", encoding="utf-8") as file:
-            for line in file:
-                date, time, task = line.strip().split(',')
-                if date in tasks:
-                    tasks[date].append((time, task))
-                else:
-                    tasks[date] = [(time, task)]
+        if os.path.exists(self.DATA_FILE):
+             try:
+                with open(self.DATA_FILE, "r", encoding='utf-8') as file:
+                    data = json.load(file)
+                    task_list = data.get('tasks', [])
+                    for task_item in task_list:
+                         date = task_item.get('date')
+                         time = task_item.get('time')
+                         task = task_item.get('title') # Was 'task' in txt, now 'title' in json
+                         status = task_item.get('status', 'active')
+                         
+                         if status == 'active': # Only show active tasks on calendar? Or all? Let's show all for now but distinguish
+                             if date in tasks:
+                                tasks[date].append((time, task))
+                             else:
+                                tasks[date] = [(time, task)]
+             except:
+                 pass
         return tasks
 
     def toggle_mode(self, mode_day):
@@ -194,16 +208,16 @@ class CalendarFM:
                 widget.destroy()
 
         def action1():
-            print("Action 1 for", formatted_date)
+            if self.action1: self.action1()
 
         def action2():
-            print("Action 2 for", formatted_date)
+            if self.action2: self.action2()
 
         # 将按钮放在当前选中的cell_label上
-        btn1 = tk.Button(event.widget, text="記事本", width=5, height=1, command=self.action1)
+        btn1 = tk.Button(event.widget, text="記事本", width=5, height=1, command=action1)
         btn1.place(x=2, y=73)
 
-        btn2 = tk.Button(event.widget, text="備忘錄", width=5, height=1, command=self.action2)
+        btn2 = tk.Button(event.widget, text="備忘錄", width=5, height=1, command=action2)
         btn2.place(x=48, y=73)
 
         # 更新当前选中的cell_label
@@ -211,36 +225,11 @@ class CalendarFM:
 
 
     def update_calendar(self):
-        for row_labels in self.calendar_grid:
-            for cell_label in row_labels:
-                if cell_label.cget('text') != "":
-                    cell_label.config(bg=self.darkBG2, fg=self.white, compound="bottom",
-                                    activebackground="#4c4e52", activeforeground=self.white, relief="ridge",
-                                    width=94, height=97, bd=1, font=('Helvetica', 16, 'bold'))
-                else:
-                    cell_label.config(bg=self.darkBG2, fg=self.white, activebackground=self.darkBG2,
-                                    activeforeground=self.white, relief="ridge", width=10, height=5, bd=1,
-                                    font=('Helvetica', 12))
-
         # Update tasks
-        self.tasks = self.load_tasks("tasks.txt")
-
-        # Destroy existing buttons
-        for row in self.calendar_grid:
-            for button in row:
-                button.destroy()
-
-        # Recreate weekday labels
-        weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-        self.weekday_labels = []
-        for i, day in enumerate(weekdays):
-            label = tk.Label(self.calendar_frame, text=day, bg=self.currentbg_color, fg=self.currentfg_color, font=('Helvetica', 12))
-            label.grid(row=0, column=i, padx=0, pady=0)
-            self.weekday_labels.append(label)
-
-        # Recreate date grid
+        self.tasks = self.load_tasks()
+        
+        # Completely re-render instead of updating existing labels as in original (which was partial and buggy)
         self.create_calendar_grid(self.calendar_frame)
-        self.calendar_frame.grid(row=1, column=0, columnspan=7)
 
 
 # if __name__ == "__main__":
