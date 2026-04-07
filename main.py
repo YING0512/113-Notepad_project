@@ -261,8 +261,7 @@ class NoteApp:
             self.todo_app = Todo(self.content_frame, mode_day=self.mode_day)
             self.todo_app.toggle_mode(self.mode_day)
         else:
-            self.mode_day = not self.mode_day
-            self.text_app = TextEditor(self.content_frame)
+            self.text_app = TextEditor(self.content_frame, mode_day=self.mode_day)
             
         self.mode_day = not self.mode_day
         
@@ -305,9 +304,8 @@ class NoteApp:
         for widget in self.content_frame.winfo_children():
             widget.destroy()
         if self.text:
-            self.text_app = TextEditor(self.content_frame)  
+            self.text_app = TextEditor(self.content_frame, mode_day=not self.mode_day)  
         self.update_layout()
-        # self.text_app.toggle_mode(not self.mode_day)
 
     def todo_click(self):
         self.home = False

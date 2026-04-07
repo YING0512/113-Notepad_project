@@ -8,7 +8,7 @@ import json
 import os
 
 class TextEditor:
-    def __init__(self, root):
+    def __init__(self, root, mode_day=True):
         self.root = root
         self.last_saved_file = None  # 初始化上一次儲存的文件路徑
         self.fontSize = 12
@@ -133,7 +133,7 @@ class TextEditor:
         self.notes_listbox.bind('<<ListboxSelect>>', self.load_selected_note)
 
         # Change colors and mode
-        self.toggle_mode(mode_day=True)
+        self.toggle_mode(mode_day=mode_day)
 
         # Load notes list
         self.load_notes_list()
