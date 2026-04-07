@@ -39,7 +39,7 @@ class Todo:
         self.txt_input.pack(side="left", padx=5)
         
         # DateEntry for selecting date
-        self.cal = DateEntry(self.input_frame, width=12, background='darkblue', foreground='white', borderwidth=2, year=2024, date_pattern="yyyy/mm/dd")
+        self.cal = DateEntry(self.input_frame, width=12, background='darkblue', foreground='white', borderwidth=2, year=self.current_time.year, month=self.current_time.month, day=self.current_time.day, date_pattern="yyyy/mm/dd")
         self.cal.pack(side="left", padx=5)
 
         # Labels and Spinboxes for time selection
@@ -61,7 +61,7 @@ class Todo:
         self.ampm_optionmenu.pack(side="left", padx=5)
 
         # Button to add tasks and set reminders
-        self.btn_add_task = tk.Button(self.input_frame, text="建立待辦事項", fg="white", bg="#6CAE75", command=self.add_task)
+        self.btn_add_task = tk.Button(self.input_frame, text="建立提醒", fg="white", bg="#6CAE75", command=self.add_task)
         self.btn_add_task.pack(side="left", padx=5)
 
         # Button to delete selected task
@@ -86,7 +86,7 @@ class Todo:
 
         
         # Information about automatic deletion
-        lbl_info = tk.Label(root, text=f"過期事項將在 {self.DELETE_DELAY // (24 * 60 * 60)} 天後自動刪除", bg="#F0F0F0", font=("Arial", 10))
+        lbl_info = tk.Label(root, text=f"過期事項將在 {self.DELETE_DELAY // (24 * 60 * 60)} 天後自動刪除", bg="#F0F0F0", font=("微軟正黑體", 10))
         lbl_info.pack(pady=5, fill="x")
 
         # Start checking file changes instead of local reminders

@@ -23,12 +23,12 @@ class Home:
         self.currentactive_color = self.darkactive
 
         # Adjusted Positions and Sizes
-        self.DoListTitle = tk.Label(self.mainframe, text="待辦事項", bg=self.darkBG1, fg=self.white, bd=1, font=("宋體", 20, "bold","underline"))
+        self.DoListTitle = tk.Label(self.mainframe, text="提醒", bg=self.darkBG1, fg=self.white, bd=1, font=("微軟正黑體", 20, "bold","underline"))
         self.DoListTitle.place(x=0, y=0, width=1180, height=50)
         self.DoList = tk.Frame(self.mainframe, bg=self.currentbg_color)
         self.DoList.place(x=0, y=50, width=1180, height=359)
         
-        self.NoteListTitle = tk.Label(self.mainframe, text="記事本", bg=self.darkBG1, fg=self.white, bd=1, font=("宋體", 20, "bold","underline"))
+        self.NoteListTitle = tk.Label(self.mainframe, text="記事本", bg=self.darkBG1, fg=self.white, bd=1, font=("微軟正黑體", 20, "bold","underline"))
         self.NoteListTitle.place(x=0, y=409, width=1180, height=50)
         self.NoteList = tk.Frame(self.mainframe, bg=self.currentbg_color)
         self.NoteList.place(x=0, y=459, width=1180, height=309)
@@ -97,7 +97,7 @@ class Home:
                          continue # Skip expired on home
                          
                     task_text = f"{task['date']}\n{task['time']}\n{task['title']}"
-                    label = tk.Label(self.DoList, text=task_text, bg=self.currentactive_color, fg=self.currentfg_color, font=("宋體", 18), width=10, height=5)
+                    label = tk.Label(self.DoList, text=task_text, bg=self.currentactive_color, fg=self.currentfg_color, font=("微軟正黑體", 18), width=10, height=5)
                     row, col = divmod(i, 4)
                     label.grid(row=row, column=col, padx=10, pady=10)
         except Exception as e:
@@ -118,7 +118,7 @@ class Home:
                     # Truncate content for display
                     content_preview = note['content'][:20] + "..." if len(note['content']) > 20 else note['content']
                     note_text = f"{note['title']}\n{content_preview}"
-                    label = tk.Label(self.NoteList, text=note_text, bg=self.currentactive_color, fg=self.currentfg_color, font=("宋體", 18), width=10, height=5)
+                    label = tk.Label(self.NoteList, text=note_text, bg=self.currentactive_color, fg=self.currentfg_color, font=("微軟正黑體", 18), width=10, height=5)
                     row, col = divmod(i, 4)
                     label.grid(row=row, column=col, padx=10, pady=10)
         except Exception as e:

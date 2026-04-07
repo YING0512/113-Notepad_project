@@ -77,11 +77,11 @@ class NoteApp:
         # Information Frame
         self.information_frame = tk.Frame(self.root, bd=0, bg=self.darkBG1)
         self.information_frame.place(x=940, y=40, width=300, height=728)
-        self.DoListTitle = tk.Label(self.information_frame, text="待辦事項", bg=self.darkBG1, fg=self.white, bd=1, font=("宋體", 20, "bold","underline"))
+        self.DoListTitle = tk.Label(self.information_frame, text="提醒", bg=self.darkBG1, fg=self.white, bd=1, font=("微軟正黑體", 20, "bold","underline"))
         self.DoListTitle.place(x=0, y=0, width=300, height=40)
         self.DoList = tk.Frame(self.information_frame, bg=self.darkBG1)
         self.DoList.place(x=0, y=40, width=300, height=324)
-        self.NoteListTitle = tk.Label(self.information_frame, text="記事本", bg=self.darkBG1, fg=self.white, bd=1, font=("宋體", 20, "bold","underline"))
+        self.NoteListTitle = tk.Label(self.information_frame, text="記事本", bg=self.darkBG1, fg=self.white, bd=1, font=("微軟正黑體", 20, "bold","underline"))
         self.NoteListTitle.place(x=0, y=324, width=300, height=40)
         self.NoteList= tk.Frame(self.information_frame, bg=self.darkBG1 ,bd=1)
         self.NoteList.place(x=0, y=364, width=300, height=324)
@@ -107,7 +107,7 @@ class NoteApp:
         self.menu_btn.place(x=7, y=2, width=32, height=32)
         
         self.home_app = Home(self.content_frame, mode_day=self.mode_day)
-        self.content_frame.place(x=50, y=40, width=1150, height=768)
+        self.content_frame.place(x=50, y=40, width=1150, height=728)
         self.information_frame.place(x=1200, y=40, width=0, height=728)
         self.home = True
 # 
@@ -136,17 +136,17 @@ class NoteApp:
         self.mode_button.place(x=7, y=7, width=32, height=32)
 # 
     def create_menu_buttons_expanded(self):#menu expanded
-        self.calender_btn = tk.Button(self.menu_frame, text=" 日　歷", compound=tk.LEFT, font=('宋體', 11 , 'bold'), image=self.calender_icon, bd=0, cursor="hand2",command=self.calendar_click)
+        self.calender_btn = tk.Button(self.menu_frame, text=" 日歷", compound=tk.LEFT, font=('微軟正黑體', 11 , 'bold'), image=self.calender_icon, bd=0, cursor="hand2",command=self.calendar_click)
         self.calender_btn.image = self.calender_icon_path
         self.calender_btn.place(x=7, y=7, width=90, height=32)
         self.menu_buttons.append(self.calender_btn)
 
-        self.text_btn = tk.Button(self.menu_frame, text=" 記事本", compound=tk.LEFT, font=('宋體', 11 , 'bold'), image=self.text_icon, bd=0, cursor="hand2",command=self.text_click)
+        self.text_btn = tk.Button(self.menu_frame, text=" 記事本", compound=tk.LEFT, font=('微軟正黑體', 11 , 'bold'), image=self.text_icon, bd=0, cursor="hand2",command=self.text_click)
         self.text_btn.image = self.text_icon_path
         self.text_btn.place(x=7, y=47, width=90, height=32)
         self.menu_buttons.append(self.text_btn)
 
-        self.todo_btn = tk.Button(self.menu_frame, text=" 備忘錄", compound=tk.LEFT, font=('宋體', 11 , 'bold'), image=self.todo_icon, bd=0, cursor="hand2",command=self.todo_click)
+        self.todo_btn = tk.Button(self.menu_frame, text=" 提醒", compound=tk.LEFT, font=('微軟正黑體', 11 , 'bold'), image=self.todo_icon, bd=0, cursor="hand2",command=self.todo_click)
         self.todo_btn.image = self.todo_icon_path
         self.todo_btn.place(x=7, y=87, width=90, height=32)
         self.menu_buttons.append(self.todo_btn)
@@ -155,7 +155,7 @@ class NoteApp:
             self.modetext =" 暗色模式"
         else:
             self.modetext =" 亮色模式"
-        self.mode_button.config(text=self.modetext,compound=tk.LEFT, font=('宋體', 11 , 'bold'),command=self.toggle_mode)
+        self.mode_button.config(text=self.modetext,compound=tk.LEFT, font=('微軟正黑體', 11 , 'bold'),command=self.toggle_mode)
         self.mode_button.place(x=7, y=7, width=100, height=32)
 # 
     def toggle_menu(self):  #menu size change
@@ -194,7 +194,7 @@ class NoteApp:
         if self.home:
             # Home mode: full width (minus side padding maybe?) or just wider content
             content_width = 1200 - content_x
-            self.content_frame.place(x=content_x, y=40, width=content_width, height=768)
+            self.content_frame.place(x=content_x, y=40, width=content_width, height=728)
             self.information_frame.place(x=1200, y=40, width=0, height=728) # Hide info frame
         else:
             # Other modes: show info frame
@@ -207,7 +207,7 @@ class NoteApp:
                 # If collapsed, content starts at 50. Ends at 940.
                 content_width = info_x - content_x # 940-50 = 890
                 
-            self.content_frame.place(x=content_x, y=40, width=content_width, height=768)
+            self.content_frame.place(x=content_x, y=40, width=content_width, height=728)
             self.information_frame.place(x=info_x, y=40, width=300, height=728)
 
 #   
@@ -440,7 +440,7 @@ class NoteApp:
                     
                 for i, note in enumerate(notes):
                     note_text = f"{note['title']} {note['content'][:10]}..."
-                    label = tk.Label(self.NoteList, text=note_text, bg=self.currentactive_color, fg=self.currentfg_color, font=("宋體", 18))
+                    label = tk.Label(self.NoteList, text=note_text, bg=self.currentactive_color, fg=self.currentfg_color, font=("微軟正黑體", 18))
                     label.grid(row=i, column=0, sticky="w", padx=10, pady=10)
         except Exception as e:
             print(f"找不到檔案 or Error: {e}")
