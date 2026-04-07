@@ -86,7 +86,7 @@ class NoteApp:
         self.mode_button.place(x=7, y=7, width=32, height=32)
 # 
     def create_menu_buttons_expanded(self):#menu expanded
-        self.calender_btn = tk.Button(self.menu_frame, text=" 日歷　", compound=tk.LEFT, font=('宋體', 11 , 'bold'), image=self.calender_icon, fg=self.black, bd=0, cursor="hand2",command=self.calendar_click)
+        self.calender_btn = tk.Button(self.menu_frame, text=" 日　歷", compound=tk.LEFT, font=('宋體', 11 , 'bold'), image=self.calender_icon, fg=self.black, bd=0, cursor="hand2",command=self.calendar_click)
         self.calender_btn.image = self.calender_icon_path
         self.calender_btn.place(x=7, y=47, width=90, height=32)
         self.menu_buttons.append(self.calender_btn)
@@ -96,7 +96,7 @@ class NoteApp:
         self.text_btn.place(x=7, y=87, width=90, height=32)
         self.menu_buttons.append(self.text_btn)
 
-        self.todo_btn = tk.Button(self.menu_frame, text=" 備忘錄", compound=tk.LEFT, font=('宋體', 11 , 'bold'), image=self.todo_icon, fg=self.black, bd=0, cursor="hand2",command=self.todo_click)
+        self.todo_btn = tk.Button(self.menu_frame, text=" 提　醒", compound=tk.LEFT, font=('宋體', 11 , 'bold'), image=self.todo_icon, fg=self.black, bd=0, cursor="hand2",command=self.todo_click)
         self.todo_btn.image = self.todo_icon_path
         self.todo_btn.place(x=7, y=127, width=90, height=32)
         self.menu_buttons.append(self.todo_btn)
